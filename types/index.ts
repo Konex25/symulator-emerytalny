@@ -53,13 +53,6 @@ export interface SalaryHistory {
   amount: number;
 }
 
-// Okres zwolnienia lekarskiego
-export interface SickLeavePeriod {
-  startDate: string;
-  endDate: string;
-  days: number;
-}
-
 // Grupa emerytalna (dla wykresów)
 export interface PensionGroup {
   id: string;
@@ -82,7 +75,6 @@ export interface PDFReportData {
   result: SimulationResult;
   generatedAt: Date;
   salaryHistory?: SalaryHistory[];
-  sickLeavePeriods?: SickLeavePeriod[];
 }
 
 // Log użycia dla administratora
