@@ -3,9 +3,13 @@
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import AdvancedDashboard from './AdvancedDashboard';
+import GapAnalysis from './GapAnalysis';
+import SmartSuggestions from './SmartSuggestions';
+import ScenarioComparer from './ScenarioComparer';
 import type { SimulationResult, SimulationInput } from '@/types';
 import { formatCurrency, formatPercent, validatePostalCode } from '@/utils/formatters';
 import { generatePDF, saveSimulationToLocalStorage } from '@/lib/pdf';
+import { RETIREMENT_AGE } from '@/lib/constants';
 
 interface ResultsScreenProps {
   result: SimulationResult;
@@ -416,6 +420,34 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
           console.log('Przeliczanie z nowymi danymi:', updatedInput);
           // Tutaj możesz dodać logikę wywołania API z nowymi parametrami
         }}
+      />
+
+      {/* ===== NOWE SEKCJE: Przystępna edukacja emerytalna ===== */}
+      
+      {/* Gap Analysis - Analiza luki do celu */}
+      {input.desiredPension && (
+        <GapAnalysis
+          currentPension={result.nominalPension}
+          targetPension={input.desiredPension}
+        />
+      )}
+
+      {/* Smart Suggestions - Personalizowane sugestie */}
+      {input.desiredPension && (
+        <SmartSuggestions
+          currentPension={result.nominalPension}
+          targetPension={input.desiredPension}
+          currentSalary={input.grossSalary}
+          age={input.age}
+          retirementAge={RETIREMENT_AGE[input.sex]}
+        />
+      )}
+
+      {/* Scenario Comparer - Porównanie scenariuszy */}
+      <ScenarioComparer
+        currentPension={result.nominalPension}
+        currentSalary={input.grossSalary}
+        targetPension={input.desiredPension}
       />
 
       {/* Kod pocztowy i pobieranie PDF */}

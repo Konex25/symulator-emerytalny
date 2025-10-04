@@ -281,3 +281,302 @@ export function calculateFullSimulation(input: SimulationInput): SimulationResul
   };
 }
 
+/**
+ * ========================================
+ * NOWE FUNKCJE: Gap Analysis & Smart Suggestions
+ * ========================================
+ */
+
+/**
+ * Oblicza lukę między celem a prognozą
+ */
+export function calculateGap(currentPension: number, targetPension: number) {
+  const gap = targetPension - currentPension;
+  const gapPercentage = (gap / targetPension) * 100;
+  
+  return {
+    gap: Math.round(gap * 100) / 100,
+    gapPercentage: Math.round(gapPercentage * 100) / 100,
+    hasGap: gap > 0,
+    meetsGoal: gap <= 0,
+  };
+}
+
+/**
+ * Oblicza szczegółowe scenariusze dłuższej pracy
+ */
+export function calculateWorkLongerScenarios(
+  basePension: number,
+  grossSalary: number,
+  targetPension?: number
+) {
+  const scenarios = [];
+  
+  for (let years = 1; years <= 10; years++) {
+    const newPension = calculateLaterRetirementBonus(basePension, years, grossSalary);
+    const percentageIncrease = ((newPension - basePension) / basePension) * 100;
+    const meetsGoal = targetPension ? newPension >= targetPension : false;
+    
+    scenarios.push({
+      years,
+      pension: Math.round(newPension * 100) / 100,
+      increase: Math.round((newPension - basePension) * 100) / 100,
+      percentageIncrease: Math.round(percentageIncrease * 100) / 100,
+      meetsGoal,
+    });
+  }
+  
+  return scenarios;
+}
+
+/**
+ * Oblicza scenariusze dodatkowego dochodu
+ */
+export function calculateExtraIncomeScenarios(
+  basePension: number,
+  currentSalary: number,
+  targetPension?: number
+) {
+  const scenarios = [];
+  const extraIncomes = [300, 500, 800, 1000, 1500, 2000]; // PLN/miesiąc
+  const durations = [1, 2, 3, 5, 7, 10]; // lata
+  
+  for (const extraIncome of extraIncomes) {
+    for (const duration of durations) {
+      // Dodatkowy dochód zwiększa składki
+      const additionalContributions = extraIncome * 12 * duration * ECONOMIC_INDICATORS.contributionRate;
+      const monthsOfPension = 18 * 12;
+      const pensionIncrease = additionalContributions / monthsOfPension;
+      const newPension = basePension + pensionIncrease;
+      const meetsGoal = targetPension ? newPension >= targetPension : false;
+      
+      scenarios.push({
+        extraMonthlyIncome: extraIncome,
+        durationYears: duration,
+        totalExtra: extraIncome * 12 * duration,
+        pension: Math.round(newPension * 100) / 100,
+        increase: Math.round(pensionIncrease * 100) / 100,
+        percentageIncrease: Math.round((pensionIncrease / basePension) * 100 * 100) / 100,
+        meetsGoal,
+        effort: extraIncome >= 1500 ? 'high' : extraIncome >= 800 ? 'medium' : 'low',
+      });
+    }
+  }
+  
+  // Sortuj po % wzrostu
+  return scenarios.sort((a, b) => b.percentageIncrease - a.percentageIncrease);
+}
+
+/**
+ * Oblicza scenariusze podwyżek i rozwoju kariery
+ */
+export function calculateRaiseScenarios(
+  basePension: number,
+  currentSalary: number,
+  yearsUntilRetirement: number,
+  targetPension?: number
+) {
+  const scenarios = [];
+  const raiseRates = [0.03, 0.05, 0.07, 0.10]; // 3%, 5%, 7%, 10% rocznie
+  
+  for (const raiseRate of raiseRates) {
+    let totalContributions = 0;
+    let salary = currentSalary;
+    
+    for (let year = 0; year < yearsUntilRetirement; year++) {
+      salary *= (1 + raiseRate);
+      totalContributions += salary * 12 * ECONOMIC_INDICATORS.contributionRate;
+    }
+    
+    const monthsOfPension = 18 * 12;
+    const pensionIncrease = totalContributions / monthsOfPension;
+    const newPension = pensionIncrease; // to jest już nowa emerytura z nowymi składkami
+    const meetsGoal = targetPension ? newPension >= targetPension : false;
+    
+    scenarios.push({
+      annualRaiseRate: raiseRate * 100,
+      finalSalary: Math.round(salary),
+      pension: Math.round(newPension * 100) / 100,
+      increase: Math.round((newPension - basePension) * 100) / 100,
+      meetsGoal,
+    });
+  }
+  
+  return scenarios;
+}
+
+/**
+ * Sugeruje optymalne ścieżki do celu
+ */
+export function suggestOptimalPaths(
+  currentPension: number,
+  targetPension: number,
+  currentSalary: number,
+  yearsUntilRetirement: number
+) {
+  if (currentPension >= targetPension) {
+    return {
+      needsSuggestions: false,
+      message: 'Gratulacje! Osiągniesz swój cel emerytalny!',
+    };
+  }
+  
+  const gap = targetPension - currentPension;
+  const suggestions = [];
+  
+  // #1: NAJSZYBSZA ŚCIEŻKA - dodatkowy dochód
+  // Dla dużych luk użyj dłuższego okresu (5 lat zamiast 3)
+  const fastDuration = gap > 1500 ? 5 : 3;
+  const extraIncomeNeeded = calculateExtraIncomeForGoal(gap, fastDuration);
+  
+  // Dodaj tylko jeśli jest realistyczne (max 3000 PLN/mies)
+  if (extraIncomeNeeded <= 3000) {
+    suggestions.push({
+      id: 'fastest',
+      title: `Najszybsza (${fastDuration} ${fastDuration === 1 ? 'rok' : 'lat'})`,
+      strategy: 'extra_income',
+      description: `Dodatkowy dochód +${extraIncomeNeeded} PLN/mies przez ${fastDuration} ${fastDuration === 1 ? 'rok' : 'lat'}`,
+      effort: extraIncomeNeeded >= 2000 ? 'high' : extraIncomeNeeded >= 1000 ? 'medium' : 'low',
+      timeframe: fastDuration,
+      details: {
+        extraMonthlyIncome: extraIncomeNeeded,
+        duration: fastDuration,
+        totalEarned: extraIncomeNeeded * 12 * fastDuration,
+      },
+      pros: ['Najszybszy rezultat', 'Krótki wysiłek', 'Konkretny plan'],
+      cons: ['Wymaga dodatkowej pracy', extraIncomeNeeded >= 2000 ? 'Wysokie tempo' : 'Wymaga dyscypliny'],
+    });
+  }
+  
+  // #2: ZBALANSOWANA - kombinacja
+  const workLongerYears = Math.ceil(yearsUntilRetirement * 0.2); // +20% czasu pracy
+  const workLongerPension = calculateLaterRetirementBonus(currentPension, workLongerYears, currentSalary);
+  const remainingGap = targetPension - workLongerPension;
+  
+  if (remainingGap > 0) {
+    // Spróbuj z dłuższym okresem (10 lat zamiast 5) dla większych luk
+    const durationYears = remainingGap > 1000 ? 10 : 5;
+    const extraIncomeForBalance = calculateExtraIncomeForGoal(remainingGap, durationYears);
+    
+    // Dodaj tylko jeśli jest realistyczne (max 3000 PLN/mies)
+    if (extraIncomeForBalance <= 3000) {
+      suggestions.push({
+        id: 'balanced',
+        title: `Zbalansowana (${durationYears + workLongerYears} lat)`,
+        strategy: 'combined',
+        description: `+${extraIncomeForBalance} PLN/mies przez ${durationYears} lat + pracuj ${workLongerYears} lat dłużej`,
+        effort: 'medium',
+        timeframe: durationYears + workLongerYears,
+        details: {
+          extraMonthlyIncome: extraIncomeForBalance,
+          extraDuration: durationYears,
+          workLongerYears,
+          totalEarned: extraIncomeForBalance * 12 * durationYears,
+        },
+        pros: ['Umiarkowany wysiłek', 'Realistyczna', 'Elastyczna'],
+        cons: ['Dłuższy czas', 'Wymaga dyscypliny'],
+      });
+    }
+  }
+  
+  // #3: BEZ WYSIŁKU - tylko dłuższa praca
+  const yearsNeededForGoal = calculateYearsNeeded(currentPension, targetPension, currentSalary);
+  if (yearsNeededForGoal <= 10) {
+    suggestions.push({
+      id: 'effortless',
+      title: 'Bez wysiłku',
+      strategy: 'work_longer',
+      description: `Po prostu pracuj ${yearsNeededForGoal} lat dłużej`,
+      effort: 'low',
+      timeframe: yearsNeededForGoal,
+      details: {
+        workLongerYears: yearsNeededForGoal,
+        retirementAge: 65 + yearsNeededForGoal,
+      },
+      pros: ['Bez dodatkowego wysiłku', 'Pewne', 'Proste'],
+      cons: ['Późna emerytura', 'Długi czas'],
+    });
+  }
+  
+  // #4: INWESTYCJE (IKE/IKZE)
+  const monthlyInvestment = calculateMonthlyInvestmentForGoal(gap, yearsUntilRetirement);
+  if (monthlyInvestment <= 1500) {
+    suggestions.push({
+      id: 'investment',
+      title: 'Inwestycje długoterminowe',
+      strategy: 'investment',
+      description: `Odkładaj ${monthlyInvestment} PLN/mies do IKE/IKZE`,
+      effort: 'low',
+      timeframe: yearsUntilRetirement,
+      details: {
+        monthlyInvestment,
+        totalInvested: monthlyInvestment * 12 * yearsUntilRetirement,
+        expectedReturn: gap,
+      },
+      pros: ['Ulga podatkowa', 'Długoterminowe', 'Pasywne'],
+      cons: ['Wymaga dyscypliny', 'Ryzyko rynkowe'],
+    });
+  }
+  
+  // #5: REALISTYCZNA dla trudnych przypadków - obniż cel lub pracuj znacznie dłużej
+  if (suggestions.length < 2 && gap > 1500) {
+    // Jeśli nie ma realistycznych sugestii, zaproponuj korektę celu
+    const reducedTarget = currentPension * 1.3; // +30% obecnej prognozy
+    const reducedGap = reducedTarget - currentPension;
+    const realisticExtra = calculateExtraIncomeForGoal(reducedGap, 7);
+    
+    if (realisticExtra <= 2000) {
+      suggestions.push({
+        id: 'realistic',
+        title: 'Realistyczna modyfikacja',
+        strategy: 'combined',
+        description: `Rozważ cel ${Math.round(reducedTarget)} PLN (zamiast ${targetPension}) + dodatkowy dochód ${realisticExtra} PLN przez 7 lat`,
+        effort: 'medium',
+        timeframe: 7,
+        details: {
+          extraMonthlyIncome: realisticExtra,
+          extraDuration: 7,
+          adjustedTarget: Math.round(reducedTarget),
+          originalTarget: targetPension,
+          totalEarned: realisticExtra * 12 * 7,
+        },
+        pros: ['Realistyczne do osiągnięcia', 'Elastyczne', 'Nadal znaczna poprawa'],
+        cons: ['Wymaga obniżenia oczekiwań', 'Średni wysiłek'],
+      });
+    }
+  }
+  
+  return {
+    needsSuggestions: true,
+    gap: Math.round(gap * 100) / 100,
+    gapPercentage: Math.round((gap / targetPension) * 100 * 100) / 100,
+    suggestions: suggestions.slice(0, 4), // max 4 sugestie
+  };
+}
+
+/**
+ * Pomocnicza: Oblicza jaki dodatkowy dochód miesięczny jest potrzebny
+ */
+function calculateExtraIncomeForGoal(gap: number, durationYears: number): number {
+  const monthsOfPension = 18 * 12;
+  const additionalFundsNeeded = gap * monthsOfPension;
+  const monthlyIncome = additionalFundsNeeded / (durationYears * 12 * ECONOMIC_INDICATORS.contributionRate);
+  return Math.ceil(monthlyIncome / 50) * 50; // Zaokrągl do 50 PLN
+}
+
+/**
+ * Pomocnicza: Oblicza miesięczną kwotę inwestycji do celu
+ */
+function calculateMonthlyInvestmentForGoal(gap: number, years: number): number {
+  // Uproszczony model: zakładamy 5% rocznego zwrotu
+  const monthlyRate = 0.05 / 12;
+  const months = years * 12;
+  
+  // Formuła FV dla anuitet: FV = PMT * [((1 + r)^n - 1) / r]
+  // PMT = FV / [((1 + r)^n - 1) / r]
+  const futureValue = gap;
+  const monthlyPayment = futureValue / ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+  
+  return Math.ceil(monthlyPayment / 50) * 50; // Zaokrągl do 50 PLN
+}
+
