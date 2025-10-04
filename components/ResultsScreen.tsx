@@ -30,10 +30,6 @@ export default function ResultsScreen({
   const [postalCodeError, setPostalCodeError] = useState("");
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Oblicz lata do emerytury
-  const currentYear = new Date().getFullYear();
-  const yearsUntilRetirement = Math.max(0, input.workEndYear - currentYear);
-
   useEffect(() => {
     // Fade-in animation
     setIsVisible(true);
@@ -537,7 +533,6 @@ export default function ResultsScreen({
       <ScenarioComparer
         currentPension={result.nominalPension}
         currentSalary={input.grossSalary}
-        yearsUntilRetirement={yearsUntilRetirement}
         targetPension={input.desiredPension}
       />
 
