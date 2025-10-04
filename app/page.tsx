@@ -284,8 +284,7 @@ export default function Home() {
                   {formatCurrency(result.realPension)}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Kwota skorygowana o przewidywaną inflację (
-                  {formatPercent(inputData.inflationRate || 0.02)} rocznie).
+                  Kwota skorygowana o przewidywaną inflację ({formatPercent(0.02)} rocznie).
                 </p>
               </div>
             </div>
