@@ -20,59 +20,21 @@ import {
   type GUSLifespanData,
   type ValorizationParams,
 } from "./dataParsers";
-import { readFileSync } from "fs";
-import { join } from "path";
-
-// Cache for parsed data to avoid re-parsing on every calculation
-let cachedLifespanData: GUSLifespanData | null = null;
-let cachedValorizationData: ValorizationParams[] | null = null;
-
-/**
- * Load and cache the CSV data
- */
-function loadCSVData() {
-  if (cachedLifespanData && cachedValorizationData) {
-    return {
-      lifespanData: cachedLifespanData,
-      valorizationData: cachedValorizationData,
-    };
-  }
-
-  try {
-    // Load GUS lifespan data from public directory
-    const lifespanPath = join(
-      process.cwd(),
-      "public",
-      "GUS_estimated_lifespan.csv"
-    );
-    const lifespanCSV = readFileSync(lifespanPath, "utf-8");
-    cachedLifespanData = parseGUSLifespanData(lifespanCSV);
-
-    // Load valorization parameters from public directory
-    const valorizationPath = join(
-      process.cwd(),
-      "public",
-      "ValorizationParams.csv"
-    );
-    const valorizationCSV = readFileSync(valorizationPath, "utf-8");
-    cachedValorizationData = parseValorizationParams(valorizationCSV);
-
-    return {
-      lifespanData: cachedLifespanData,
-      valorizationData: cachedValorizationData,
-    };
-  } catch (error) {
-    console.error("Error loading CSV data:", error);
-    throw new Error("Nie można załadować danych do obliczeń");
-  }
-}
 
 /**
  * Calculate actual pension using ZUS formula: emerytura = podstawa obliczenia emerytury / średnie dalsze trwanie życia
  * Podstawa obliczenia emerytury = zwaloryzowany kapitał początkowy + zwaloryzowane składki ZUS + zwaloryzowane środki subkonta
  */
-export function calculateActualPension(input: SimulationInput): number {
-  const { lifespanData, valorizationData } = loadCSVData();
+export function calculateActualPension(
+  input: SimulationInput,
+  csvData?: { lifespanData: any; valorizationData: any }
+): number {
+  // Use provided CSV data or throw error if not provided
+  if (!csvData) {
+    throw new Error("CSV data must be provided for calculations");
+  }
+
+  const { lifespanData, valorizationData } = csvData;
 
   const {
     age,
@@ -184,17 +146,17 @@ function applyAnnualValorization(
   // Apply valorization only from contribution year to current year (31 stycznia)
   // Składki są waloryzowane tylko do ostatniej waloryzacji rocznej
   for (let year = contributionYear; year < currentYear; year++) {
-    const valorizationParams = getValorizationParams(
-      valorizationData,
-      year,
-      "I"
-    ); // January valorization
+    const valorizationParams = getValorizationParams(valorizationData, year);
 
     if (valorizationParams) {
       // Apply ZUS account valorization rate
       valorizedAmount *= valorizationParams.accountIndexation;
     } else {
-      console.warn(`No valorization data found for year ${year}`);
+      // Fallback: use average inflation for years without valorization data
+      console.warn(
+        `No valorization data found for year ${year}, using average inflation`
+      );
+      valorizedAmount *= 1 + ECONOMIC_INDICATORS.averageInflation;
     }
   }
 
@@ -214,17 +176,17 @@ function applySubAccountAnnualValorization(
 
   // Apply valorization only from contribution year to current year (31 stycznia)
   for (let year = contributionYear; year < currentYear; year++) {
-    const valorizationParams = getValorizationParams(
-      valorizationData,
-      year,
-      "I"
-    ); // January valorization
+    const valorizationParams = getValorizationParams(valorizationData, year);
 
     if (valorizationParams) {
       // Apply sub-account valorization rate
       valorizedAmount *= valorizationParams.subAccountIndexation;
     } else {
-      console.warn(`No valorization data found for year ${year}`);
+      // Fallback: use average inflation for years without valorization data
+      console.warn(
+        `No valorization data found for year ${year}, using average inflation`
+      );
+      valorizedAmount *= 1 + ECONOMIC_INDICATORS.averageInflation;
     }
   }
 
@@ -517,7 +479,8 @@ export function calculateYearsNeeded(
  * Główna funkcja obliczająca pełną symulację
  */
 export function calculateFullSimulation(
-  input: SimulationInput
+  input: SimulationInput,
+  csvData?: { lifespanData: any; valorizationData: any }
 ): SimulationResult {
   const {
     age,
@@ -538,7 +501,7 @@ export function calculateFullSimulation(
   const retirementYear = workEndYear; // Używamy roku zakończenia pracy jako roku emerytury
 
   // Calculate actual pension using the new formula
-  const nominalPension = calculateActualPension(input);
+  const nominalPension = calculateActualPension(input, csvData);
 
   // Oblicz realną emeryturę
   const realPension = calculateRealPension(nominalPension, retirementYear);
@@ -609,7 +572,7 @@ export function calculateFullSimulation(
 export function calculateGap(currentPension: number, targetPension: number) {
   const gap = targetPension - currentPension;
   const gapPercentage = (gap / targetPension) * 100;
-  
+
   return {
     gap: Math.round(gap * 100) / 100,
     gapPercentage: Math.round(gapPercentage * 100) / 100,
@@ -627,12 +590,16 @@ export function calculateWorkLongerScenarios(
   targetPension?: number
 ) {
   const scenarios = [];
-  
+
   for (let years = 1; years <= 10; years++) {
-    const newPension = calculateLaterRetirementBonus(basePension, years, grossSalary);
+    const newPension = calculateLaterRetirementBonus(
+      basePension,
+      years,
+      grossSalary
+    );
     const percentageIncrease = ((newPension - basePension) / basePension) * 100;
     const meetsGoal = targetPension ? newPension >= targetPension : false;
-    
+
     scenarios.push({
       years,
       pension: Math.round(newPension * 100) / 100,
@@ -641,7 +608,7 @@ export function calculateWorkLongerScenarios(
       meetsGoal,
     });
   }
-  
+
   return scenarios;
 }
 
@@ -656,29 +623,32 @@ export function calculateExtraIncomeScenarios(
   const scenarios = [];
   const extraIncomes = [300, 500, 800, 1000, 1500, 2000]; // PLN/miesiąc
   const durations = [1, 2, 3, 5, 7, 10]; // lata
-  
+
   for (const extraIncome of extraIncomes) {
     for (const duration of durations) {
       // Dodatkowy dochód zwiększa składki
-      const additionalContributions = extraIncome * 12 * duration * ECONOMIC_INDICATORS.contributionRate;
+      const additionalContributions =
+        extraIncome * 12 * duration * ECONOMIC_INDICATORS.contributionRate;
       const monthsOfPension = 18 * 12;
       const pensionIncrease = additionalContributions / monthsOfPension;
       const newPension = basePension + pensionIncrease;
       const meetsGoal = targetPension ? newPension >= targetPension : false;
-      
+
       scenarios.push({
         extraMonthlyIncome: extraIncome,
         durationYears: duration,
         totalExtra: extraIncome * 12 * duration,
         pension: Math.round(newPension * 100) / 100,
         increase: Math.round(pensionIncrease * 100) / 100,
-        percentageIncrease: Math.round((pensionIncrease / basePension) * 100 * 100) / 100,
+        percentageIncrease:
+          Math.round((pensionIncrease / basePension) * 100 * 100) / 100,
         meetsGoal,
-        effort: extraIncome >= 1500 ? 'high' : extraIncome >= 800 ? 'medium' : 'low',
+        effort:
+          extraIncome >= 1500 ? "high" : extraIncome >= 800 ? "medium" : "low",
       });
     }
   }
-  
+
   // Sortuj po % wzrostu
   return scenarios.sort((a, b) => b.percentageIncrease - a.percentageIncrease);
 }
@@ -693,22 +663,22 @@ export function calculateRaiseScenarios(
   targetPension?: number
 ) {
   const scenarios = [];
-  const raiseRates = [0.03, 0.05, 0.07, 0.10]; // 3%, 5%, 7%, 10% rocznie
-  
+  const raiseRates = [0.03, 0.05, 0.07, 0.1]; // 3%, 5%, 7%, 10% rocznie
+
   for (const raiseRate of raiseRates) {
     let totalContributions = 0;
     let salary = currentSalary;
-    
+
     for (let year = 0; year < yearsUntilRetirement; year++) {
-      salary *= (1 + raiseRate);
+      salary *= 1 + raiseRate;
       totalContributions += salary * 12 * ECONOMIC_INDICATORS.contributionRate;
     }
-    
+
     const monthsOfPension = 18 * 12;
     const pensionIncrease = totalContributions / monthsOfPension;
     const newPension = pensionIncrease; // to jest już nowa emerytura z nowymi składkami
     const meetsGoal = targetPension ? newPension >= targetPension : false;
-    
+
     scenarios.push({
       annualRaiseRate: raiseRate * 100,
       finalSalary: Math.round(salary),
@@ -717,7 +687,7 @@ export function calculateRaiseScenarios(
       meetsGoal,
     });
   }
-  
+
   return scenarios;
 }
 
@@ -733,55 +703,70 @@ export function suggestOptimalPaths(
   if (currentPension >= targetPension) {
     return {
       needsSuggestions: false,
-      message: 'Gratulacje! Osiągniesz swój cel emerytalny!',
+      message: "Gratulacje! Osiągniesz swój cel emerytalny!",
     };
   }
-  
+
   const gap = targetPension - currentPension;
   const suggestions = [];
-  
+
   // #1: NAJSZYBSZA ŚCIEŻKA - dodatkowy dochód
   // Dla dużych luk użyj dłuższego okresu (5 lat zamiast 3)
   const fastDuration = gap > 1500 ? 5 : 3;
   const extraIncomeNeeded = calculateExtraIncomeForGoal(gap, fastDuration);
-  
+
   // Dodaj tylko jeśli jest realistyczne (max 3000 PLN/mies)
   if (extraIncomeNeeded <= 3000) {
     suggestions.push({
-      id: 'fastest',
-      title: `Najszybsza (${fastDuration} ${fastDuration === 1 ? 'rok' : 'lat'})`,
-      strategy: 'extra_income',
-      description: `Dodatkowy dochód +${extraIncomeNeeded} PLN/mies przez ${fastDuration} ${fastDuration === 1 ? 'rok' : 'lat'}`,
-      effort: extraIncomeNeeded >= 2000 ? 'high' : extraIncomeNeeded >= 1000 ? 'medium' : 'low',
+      id: "fastest",
+      title: `Najszybsza (${fastDuration} lat)`,
+      strategy: "extra_income",
+      description: `Dodatkowy dochód +${extraIncomeNeeded} PLN/mies przez ${fastDuration} lat`,
+      effort:
+        extraIncomeNeeded >= 2000
+          ? "high"
+          : extraIncomeNeeded >= 1000
+          ? "medium"
+          : "low",
       timeframe: fastDuration,
       details: {
         extraMonthlyIncome: extraIncomeNeeded,
         duration: fastDuration,
         totalEarned: extraIncomeNeeded * 12 * fastDuration,
       },
-      pros: ['Najszybszy rezultat', 'Krótki wysiłek', 'Konkretny plan'],
-      cons: ['Wymaga dodatkowej pracy', extraIncomeNeeded >= 2000 ? 'Wysokie tempo' : 'Wymaga dyscypliny'],
+      pros: ["Najszybszy rezultat", "Krótki wysiłek", "Konkretny plan"],
+      cons: [
+        "Wymaga dodatkowej pracy",
+        extraIncomeNeeded >= 2000 ? "Wysokie tempo" : "Wymaga dyscypliny",
+      ],
     });
   }
-  
+
   // #2: ZBALANSOWANA - kombinacja
   const workLongerYears = Math.ceil(yearsUntilRetirement * 0.2); // +20% czasu pracy
-  const workLongerPension = calculateLaterRetirementBonus(currentPension, workLongerYears, currentSalary);
+  const workLongerPension = calculateLaterRetirementBonus(
+    currentPension,
+    workLongerYears,
+    currentSalary
+  );
   const remainingGap = targetPension - workLongerPension;
-  
+
   if (remainingGap > 0) {
     // Spróbuj z dłuższym okresem (10 lat zamiast 5) dla większych luk
     const durationYears = remainingGap > 1000 ? 10 : 5;
-    const extraIncomeForBalance = calculateExtraIncomeForGoal(remainingGap, durationYears);
-    
+    const extraIncomeForBalance = calculateExtraIncomeForGoal(
+      remainingGap,
+      durationYears
+    );
+
     // Dodaj tylko jeśli jest realistyczne (max 3000 PLN/mies)
     if (extraIncomeForBalance <= 3000) {
       suggestions.push({
-        id: 'balanced',
+        id: "balanced",
         title: `Zbalansowana (${durationYears + workLongerYears} lat)`,
-        strategy: 'combined',
+        strategy: "combined",
         description: `+${extraIncomeForBalance} PLN/mies przez ${durationYears} lat + pracuj ${workLongerYears} lat dłużej`,
-        effort: 'medium',
+        effort: "medium",
         timeframe: durationYears + workLongerYears,
         details: {
           extraMonthlyIncome: extraIncomeForBalance,
@@ -789,65 +774,74 @@ export function suggestOptimalPaths(
           workLongerYears,
           totalEarned: extraIncomeForBalance * 12 * durationYears,
         },
-        pros: ['Umiarkowany wysiłek', 'Realistyczna', 'Elastyczna'],
-        cons: ['Dłuższy czas', 'Wymaga dyscypliny'],
+        pros: ["Umiarkowany wysiłek", "Realistyczna", "Elastyczna"],
+        cons: ["Dłuższy czas", "Wymaga dyscypliny"],
       });
     }
   }
-  
+
   // #3: BEZ WYSIŁKU - tylko dłuższa praca
-  const yearsNeededForGoal = calculateYearsNeeded(currentPension, targetPension, currentSalary);
+  const yearsNeededForGoal = calculateYearsNeeded(
+    currentPension,
+    targetPension,
+    currentSalary
+  );
   if (yearsNeededForGoal <= 10) {
     suggestions.push({
-      id: 'effortless',
-      title: 'Bez wysiłku',
-      strategy: 'work_longer',
+      id: "effortless",
+      title: "Bez wysiłku",
+      strategy: "work_longer",
       description: `Po prostu pracuj ${yearsNeededForGoal} lat dłużej`,
-      effort: 'low',
+      effort: "low",
       timeframe: yearsNeededForGoal,
       details: {
         workLongerYears: yearsNeededForGoal,
         retirementAge: 65 + yearsNeededForGoal,
       },
-      pros: ['Bez dodatkowego wysiłku', 'Pewne', 'Proste'],
-      cons: ['Późna emerytura', 'Długi czas'],
+      pros: ["Bez dodatkowego wysiłku", "Pewne", "Proste"],
+      cons: ["Późna emerytura", "Długi czas"],
     });
   }
-  
+
   // #4: INWESTYCJE (IKE/IKZE)
-  const monthlyInvestment = calculateMonthlyInvestmentForGoal(gap, yearsUntilRetirement);
+  const monthlyInvestment = calculateMonthlyInvestmentForGoal(
+    gap,
+    yearsUntilRetirement
+  );
   if (monthlyInvestment <= 1500) {
     suggestions.push({
-      id: 'investment',
-      title: 'Inwestycje długoterminowe',
-      strategy: 'investment',
+      id: "investment",
+      title: "Inwestycje długoterminowe",
+      strategy: "investment",
       description: `Odkładaj ${monthlyInvestment} PLN/mies do IKE/IKZE`,
-      effort: 'low',
+      effort: "low",
       timeframe: yearsUntilRetirement,
       details: {
         monthlyInvestment,
         totalInvested: monthlyInvestment * 12 * yearsUntilRetirement,
         expectedReturn: gap,
       },
-      pros: ['Ulga podatkowa', 'Długoterminowe', 'Pasywne'],
-      cons: ['Wymaga dyscypliny', 'Ryzyko rynkowe'],
+      pros: ["Ulga podatkowa", "Długoterminowe", "Pasywne"],
+      cons: ["Wymaga dyscypliny", "Ryzyko rynkowe"],
     });
   }
-  
+
   // #5: REALISTYCZNA dla trudnych przypadków - obniż cel lub pracuj znacznie dłużej
   if (suggestions.length < 2 && gap > 1500) {
     // Jeśli nie ma realistycznych sugestii, zaproponuj korektę celu
     const reducedTarget = currentPension * 1.3; // +30% obecnej prognozy
     const reducedGap = reducedTarget - currentPension;
     const realisticExtra = calculateExtraIncomeForGoal(reducedGap, 7);
-    
+
     if (realisticExtra <= 2000) {
       suggestions.push({
-        id: 'realistic',
-        title: 'Realistyczna modyfikacja',
-        strategy: 'combined',
-        description: `Rozważ cel ${Math.round(reducedTarget)} PLN (zamiast ${targetPension}) + dodatkowy dochód ${realisticExtra} PLN przez 7 lat`,
-        effort: 'medium',
+        id: "realistic",
+        title: "Realistyczna modyfikacja",
+        strategy: "combined",
+        description: `Rozważ cel ${Math.round(
+          reducedTarget
+        )} PLN (zamiast ${targetPension}) + dodatkowy dochód ${realisticExtra} PLN przez 7 lat`,
+        effort: "medium",
         timeframe: 7,
         details: {
           extraMonthlyIncome: realisticExtra,
@@ -856,12 +850,16 @@ export function suggestOptimalPaths(
           originalTarget: targetPension,
           totalEarned: realisticExtra * 12 * 7,
         },
-        pros: ['Realistyczne do osiągnięcia', 'Elastyczne', 'Nadal znaczna poprawa'],
-        cons: ['Wymaga obniżenia oczekiwań', 'Średni wysiłek'],
+        pros: [
+          "Realistyczne do osiągnięcia",
+          "Elastyczne",
+          "Nadal znaczna poprawa",
+        ],
+        cons: ["Wymaga obniżenia oczekiwań", "Średni wysiłek"],
       });
     }
   }
-  
+
   return {
     needsSuggestions: true,
     gap: Math.round(gap * 100) / 100,

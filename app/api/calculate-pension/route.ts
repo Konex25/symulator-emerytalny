@@ -1,6 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { calculateFullSimulation } from '@/lib/calculations';
 import type { SimulationInput, SimulationResult } from '@/types';
+import { readFileSync } from "fs";
+import { join } from "path";
+import {
+  parseGUSLifespanData,
+  parseValorizationParams,
+} from "@/lib/dataParsers";
+
+// Cache for CSV data on server side
+let cachedLifespanData: any = null;
+let cachedValorizationData: any = null;
+
+/**
+ * Load CSV data on server side
+ */
+function loadCSVData() {
+  if (cachedLifespanData && cachedValorizationData) {
+    return {
+      lifespanData: cachedLifespanData,
+      valorizationData: cachedValorizationData,
+    };
+  }
+
+  try {
+    // Load GUS lifespan data from public directory
+    const lifespanPath = join(
+      process.cwd(),
+      "public",
+      "GUS_estimated_lifespan.csv"
+    );
+    const lifespanCSV = readFileSync(lifespanPath, "utf-8");
+    cachedLifespanData = parseGUSLifespanData(lifespanCSV);
+
+    // Load valorization parameters from public directory
+    const valorizationPath = join(
+      process.cwd(),
+      "public",
+      "ValorizationParams.csv"
+    );
+    const valorizationCSV = readFileSync(valorizationPath, "utf-8");
+    cachedValorizationData = parseValorizationParams(valorizationCSV);
+
+    return {
+      lifespanData: cachedLifespanData,
+      valorizationData: cachedValorizationData,
+    };
+  } catch (error) {
+    console.error("Error loading CSV data:", error);
+    throw new Error("Nie można załadować danych do obliczeń");
+  }
+}
 
 /**
  * API Route do kalkulacji emerytury
@@ -87,8 +137,18 @@ export async function POST(request: NextRequest) {
         : undefined,
     };
 
-    // Wykonaj kalkulacje
-    const result: SimulationResult = calculateFullSimulation(input);
+    // Load CSV data on server side
+    const csvData = loadCSVData();
+
+    // Debug: log loaded data
+    console.log("Loaded CSV data:", {
+      lifespanDataKeys: Object.keys(csvData.lifespanData).slice(0, 5),
+      valorizationDataLength: csvData.valorizationData.length,
+      valorizationDataSample: csvData.valorizationData.slice(0, 3),
+    });
+
+    // Wykonaj kalkulacje z danymi CSV
+    const result: SimulationResult = calculateFullSimulation(input, csvData);
 
     // Zwróć wyniki
     return NextResponse.json({
