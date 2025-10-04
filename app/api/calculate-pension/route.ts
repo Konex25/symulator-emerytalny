@@ -140,13 +140,6 @@ export async function POST(request: NextRequest) {
     // Load CSV data on server side
     const csvData = loadCSVData();
 
-    // Debug: log loaded data
-    console.log("Loaded CSV data:", {
-      lifespanDataKeys: Object.keys(csvData.lifespanData).slice(0, 5),
-      valorizationDataLength: csvData.valorizationData.length,
-      valorizationDataSample: csvData.valorizationData.slice(0, 3),
-    });
-
     // Wykonaj kalkulacje z danymi CSV
     const result: SimulationResult = calculateFullSimulation(input, csvData);
 
