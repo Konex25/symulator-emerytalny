@@ -62,7 +62,7 @@ export const simulationFormSchema = z.object({
     .optional()
     .or(z.literal('')),
   
-  includeSickLeave: z.boolean().default(false),
+  includeSickLeave: z.boolean(),
   
   desiredPension: z
     .number({

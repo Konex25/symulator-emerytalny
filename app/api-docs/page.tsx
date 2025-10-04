@@ -36,7 +36,7 @@ export default function APIDocsPage() {
           <h3 className="font-bold text-lg mb-2">Wymagane pola:</h3>
           <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700">
             <li><code className="bg-gray-100 px-2 py-1 rounded">age</code> - wiek (18-67)</li>
-            <li><code className="bg-gray-100 px-2 py-1 rounded">sex</code> - płeć ('male' | 'female')</li>
+            <li><code className="bg-gray-100 px-2 py-1 rounded">sex</code> - płeć (&apos;male&apos; | &apos;female&apos;)</li>
             <li><code className="bg-gray-100 px-2 py-1 rounded">grossSalary</code> - wynagrodzenie brutto (min 3000)</li>
             <li><code className="bg-gray-100 px-2 py-1 rounded">workStartYear</code> - rok rozpoczęcia pracy (1960-2080)</li>
             <li><code className="bg-gray-100 px-2 py-1 rounded">workEndYear</code> - rok zakończenia pracy</li>
