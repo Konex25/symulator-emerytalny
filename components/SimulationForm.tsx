@@ -66,7 +66,7 @@ export default function SimulationForm({
     setValue("startCapital", 0);
     setValue("ofeAccount", 0);
     setValue("desiredPension", 5000);
-    setValue("includeSickLeave", false);
+    setValue("includeSickLeave", true);
     
     // Jeśli jest callback dla desiredPension, wywołaj go
     if (onDesiredPensionChange) {
