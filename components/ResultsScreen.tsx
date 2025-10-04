@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import AdvancedDashboard from './AdvancedDashboard';
 import type { SimulationResult, SimulationInput } from '@/types';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 
@@ -371,6 +372,15 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
         </div>
       )}
 
+      {/* Dashboard zaawansowany */}
+      <AdvancedDashboard 
+        initialInput={input}
+        onRecalculate={(updatedInput) => {
+          console.log('Przeliczanie z nowymi danymi:', updatedInput);
+          // Tutaj możesz dodać logikę wywołania API z nowymi parametrami
+        }}
+      />
+
       {/* Podsumowanie i CTA */}
       <div className="card bg-gradient-to-r from-zus-green to-zus-blue text-white">
         <div className="text-center">
@@ -378,20 +388,20 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
             Co dalej?
           </h3>
           <p className="text-sm mb-6 opacity-90">
-            Chcesz zobaczyć bardziej szczegółową analizę z historią składek i prognozami?
+            Możesz pobrać raport PDF lub rozpocząć nową symulację
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button 
               className="bg-white text-zus-green px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
-              📝 Zmień dane
+              📝 Nowa symulacja
             </button>
             <button 
               className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/30 transition-colors border border-white/40"
-              onClick={() => alert('Dashboard zaawansowany - dostępny w Milestone 6!')}
+              onClick={() => alert('Pobieranie PDF - dostępne w Milestone 7!')}
             >
-              📊 Zobacz szczegóły
+              📄 Pobierz raport PDF
             </button>
           </div>
         </div>
