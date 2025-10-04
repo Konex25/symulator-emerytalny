@@ -4,21 +4,28 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { PENSION_GROUPS, getRandomFunFact } from '@/lib/mockData';
 import { formatCurrency } from '@/utils/formatters';
+import type { FunFact } from "@/types";
 
 interface LandingScreenProps {
   onStartSimulation: () => void;
   onDesiredPensionChange?: (amount: number) => void;
 }
 
-export default function LandingScreen({ onStartSimulation, onDesiredPensionChange }: LandingScreenProps) {
-  const [desiredPension, setDesiredPension] = useState<string>('');
-  const [funFact, setFunFact] = useState(getRandomFunFact());
+export default function LandingScreen({
+  onStartSimulation,
+  onDesiredPensionChange,
+}: LandingScreenProps) {
+  const [desiredPension, setDesiredPension] = useState<string>("");
+  const [funFact, setFunFact] = useState<FunFact | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     // Fade-in animation
     setIsVisible(true);
-    
+
+    // Initialize fun fact on client side to avoid hydration mismatch
+    setFunFact(getRandomFunFact());
+
     // Losuj nowy fakt co 10 sekund
     const interval = setInterval(() => {
       setFunFact(getRandomFunFact());
@@ -27,10 +34,12 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
     return () => clearInterval(interval);
   }, []);
 
-  const handleDesiredPensionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDesiredPensionChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const value = e.target.value;
     setDesiredPension(value);
-    
+
     const numValue = parseFloat(value);
     if (!isNaN(numValue) && numValue > 0 && onDesiredPensionChange) {
       onDesiredPensionChange(numValue);
@@ -61,8 +70,10 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
   };
 
   return (
-    <div 
-      className={`space-y-16 transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+    <div
+      className={`space-y-16 transition-opacity duration-1000 ${
+        isVisible ? "opacity-100" : "opacity-0"
+      }`}
       role="region"
       aria-label="Strona główna symulatora emerytalnego"
     >
@@ -70,7 +81,9 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
       <section className="text-center py-8">
         <div className="mb-8">
           <h1 className="text-4xl md:text-6xl font-bold text-zus-darkblue mb-4 leading-tight">
-            Jaką emeryturę chciałbyś<br />mieć w przyszłości?
+            Jaką emeryturę chciałbyś
+            <br />
+            mieć w przyszłości?
           </h1>
           <p className="text-lg md:text-xl text-gray-600 mb-8">
             Poznaj swoją prognozę i zaplanuj przyszłość finansową
@@ -79,7 +92,10 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
 
         {/* Input oczekiwanej emerytury */}
         <div className="max-w-md mx-auto mb-6">
-          <label htmlFor="desired-pension" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="desired-pension"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Wprowadź oczekiwaną kwotę (opcjonalnie):
           </label>
           <div className="relative">
@@ -101,7 +117,7 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
         </div>
 
         <p className="text-sm text-gray-600">
-          Średnia emerytura w Polsce wynosi{' '}
+          Średnia emerytura w Polsce wynosi{" "}
           <span className="font-bold text-zus-green text-lg">3 500 PLN</span>
         </p>
 
@@ -125,7 +141,7 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
         <p className="text-center text-gray-600 mb-8">
           Najedź kursorem na słupek, aby zobaczyć szczegóły każdej grupy
         </p>
-        
+
         <ResponsiveContainer width="100%" height={400}>
           <BarChart
             data={PENSION_GROUPS}
@@ -137,21 +153,24 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
               angle={-45}
               textAnchor="end"
               height={100}
-              tick={{ fill: '#374151', fontSize: 12 }}
+              tick={{ fill: "#374151", fontSize: 12 }}
               interval={0}
             />
             <YAxis
-              tick={{ fill: '#374151', fontSize: 12 }}
-              label={{ 
-                value: 'Miesięczna emerytura (PLN)', 
-                angle: -90, 
-                position: 'insideLeft',
-                style: { fill: '#374151', fontWeight: 'bold' }
+              tick={{ fill: "#374151", fontSize: 12 }}
+              label={{
+                value: "Miesięczna emerytura (PLN)",
+                angle: -90,
+                position: "insideLeft",
+                style: { fill: "#374151", fontWeight: "bold" },
               }}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 153, 63, 0.1)' }} />
-            <Bar 
-              dataKey="amount" 
+            <Tooltip
+              content={<CustomTooltip />}
+              cursor={{ fill: "rgba(0, 153, 63, 0.1)" }}
+            />
+            <Bar
+              dataKey="amount"
               radius={[8, 8, 0, 0]}
               animationDuration={1000}
             >
@@ -165,7 +184,7 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
         <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3">
           {PENSION_GROUPS.map((group) => (
             <div key={group.id} className="flex items-center gap-2">
-              <div 
+              <div
                 className="w-4 h-4 rounded"
                 style={{ backgroundColor: group.color }}
                 aria-hidden="true"
@@ -187,16 +206,25 @@ export default function LandingScreen({ onStartSimulation, onDesiredPensionChang
               <h3 className="text-2xl font-bold text-zus-darkblue mb-3">
                 Czy wiesz, że...
               </h3>
-              <p 
-                className="text-lg text-gray-800 leading-relaxed transition-opacity duration-500"
-                key={funFact.id}
-              >
-                {funFact.text}
-              </p>
-              {funFact.category && (
-                <span className="inline-block mt-3 px-3 py-1 bg-zus-green/10 text-zus-green text-xs font-semibold rounded-full">
-                  {funFact.category}
-                </span>
+              {funFact ? (
+                <>
+                  <p
+                    className="text-lg text-gray-800 leading-relaxed transition-opacity duration-500"
+                    key={funFact.id}
+                  >
+                    {funFact.text}
+                  </p>
+                  {funFact.category && (
+                    <span className="inline-block mt-3 px-3 py-1 bg-zus-green/10 text-zus-green text-xs font-semibold rounded-full">
+                      {funFact.category}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <div className="text-lg text-gray-800 leading-relaxed">
+                  <div className="animate-pulse bg-gray-200 h-6 rounded mb-2"></div>
+                  <div className="animate-pulse bg-gray-200 h-6 rounded w-3/4"></div>
+                </div>
               )}
             </div>
           </div>
