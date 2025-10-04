@@ -126,21 +126,6 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="card bg-gradient-to-br from-zus-blue/5 to-white dark:from-zus-blue/10 dark:to-gray-800 border-l-4 border-zus-blue">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">📊</span>
-          <div>
-            <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white">
-              Dashboard zaawansowany
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Dostosuj parametry i zobacz szczegółowe prognozy
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Wykres timeline */}
       <section className="card bg-white dark:bg-gray-800">
         <h4 className="text-xl font-bold text-zus-darkblue dark:text-white mb-4">
@@ -201,8 +186,8 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
           Wynagrodzenia roczne
         </h4>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-          Poniżej przedstawiamy prognozę Twoich wynagrodzeń z 4% rocznym wzrostem.
-          Możesz edytować poszczególne lata w szczegółach poniżej.
+          Poniżej przedstawiamy prognozę Twoich wynagrodzeń z 4% rocznym
+          wzrostem. Możesz edytować poszczególne lata w szczegółach poniżej.
         </p>
 
         {/* Wykres wynagrodzeń */}
@@ -265,12 +250,16 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
                 Edytuj poszczególne wynagrodzenia per rok
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                ({salaryHistory.length > 0 ? `${salaryHistory.length} dostosowanych` : 'wszystkie domyślne'})
+                (
+                {salaryHistory.length > 0
+                  ? `${salaryHistory.length} dostosowanych`
+                  : "wszystkie domyślne"}
+                )
               </span>
             </div>
             <svg
               className={`w-5 h-5 text-gray-400 transition-transform ${
-                salaryExpanded ? 'rotate-180' : ''
+                salaryExpanded ? "rotate-180" : ""
               }`}
               fill="none"
               stroke="currentColor"
@@ -305,89 +294,89 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
                         : initialInput.grossSalary *
                           Math.pow(1.04, Math.abs(yearsFromNow));
 
-                     const existingEntry = salaryHistory.find(
-                       (entry) => entry.year === year
-                     );
+                    const existingEntry = salaryHistory.find(
+                      (entry) => entry.year === year
+                    );
 
-                     return (
-                       <div
-                         key={year}
-                         className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                       >
-                         <div className="w-20 text-sm font-medium text-gray-700">
-                           {year}
-                         </div>
-                         <div className="flex-1">
-                           <input
-                             type="number"
-                             value={existingEntry ? existingEntry.amount : ""}
-                             onChange={(e) => {
-                               const newValue = parseFloat(e.target.value) || 0;
-                               if (newValue > 0) {
-                                 const updatedHistory = salaryHistory.filter(
-                                   (entry) => entry.year !== year
-                                 );
-                                 setSalaryHistory(
-                                   [
-                                     ...updatedHistory,
-                                     { year, amount: newValue },
-                                   ].sort((a, b) => a.year - b.year)
-                                 );
-                               } else if (e.target.value === "") {
-                                 // Pozwól na puste pole podczas edycji
-                                 const updatedHistory = salaryHistory.filter(
-                                   (entry) => entry.year !== year
-                                 );
-                                 setSalaryHistory(updatedHistory);
-                               } else {
-                                 // Usuń wpis jeśli wartość jest 0 lub nieprawidłowa
-                                 setSalaryHistory(
-                                   salaryHistory.filter(
-                                     (entry) => entry.year !== year
-                                   )
-                                 );
-                               }
-                             }}
-                             onBlur={(e) => {
-                               // Jeśli pole jest puste po odkliknięciu, przywróć domyślną wartość
-                               if (
-                                 e.target.value === "" ||
-                                 parseFloat(e.target.value) <= 0
-                               ) {
-                                 const updatedHistory = salaryHistory.filter(
-                                   (entry) => entry.year !== year
-                                 );
-                                 setSalaryHistory(updatedHistory);
-                               }
-                             }}
-                             className="input-field w-full"
-                             min="0"
-                             step="100"
-                             placeholder={`${Math.round(defaultSalary)}`}
-                           />
-                         </div>
-                         {existingEntry && (
-                           <div className="text-xs text-green-600 w-24">
-                             Dostosowane
-                           </div>
-                         )}
-                         {existingEntry && (
-                           <button
-                             onClick={() =>
-                               setSalaryHistory(
-                                 salaryHistory.filter(
-                                   (entry) => entry.year !== year
-                                 )
-                               )
-                             }
-                             className="text-zus-red hover:text-red-700 font-semibold text-sm"
-                             aria-label={`Przywróć domyślną wartość dla roku ${year}`}
-                           >
-                             Reset
-                           </button>
-                         )}
-                       </div>
-                     );
+                    return (
+                      <div
+                        key={year}
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="w-20 text-sm font-medium text-gray-700">
+                          {year}
+                        </div>
+                        <div className="flex-1">
+                          <input
+                            type="number"
+                            value={existingEntry ? existingEntry.amount : ""}
+                            onChange={(e) => {
+                              const newValue = parseFloat(e.target.value) || 0;
+                              if (newValue > 0) {
+                                const updatedHistory = salaryHistory.filter(
+                                  (entry) => entry.year !== year
+                                );
+                                setSalaryHistory(
+                                  [
+                                    ...updatedHistory,
+                                    { year, amount: newValue },
+                                  ].sort((a, b) => a.year - b.year)
+                                );
+                              } else if (e.target.value === "") {
+                                // Pozwól na puste pole podczas edycji
+                                const updatedHistory = salaryHistory.filter(
+                                  (entry) => entry.year !== year
+                                );
+                                setSalaryHistory(updatedHistory);
+                              } else {
+                                // Usuń wpis jeśli wartość jest 0 lub nieprawidłowa
+                                setSalaryHistory(
+                                  salaryHistory.filter(
+                                    (entry) => entry.year !== year
+                                  )
+                                );
+                              }
+                            }}
+                            onBlur={(e) => {
+                              // Jeśli pole jest puste po odkliknięciu, przywróć domyślną wartość
+                              if (
+                                e.target.value === "" ||
+                                parseFloat(e.target.value) <= 0
+                              ) {
+                                const updatedHistory = salaryHistory.filter(
+                                  (entry) => entry.year !== year
+                                );
+                                setSalaryHistory(updatedHistory);
+                              }
+                            }}
+                            className="input-field w-full"
+                            min="0"
+                            step="100"
+                            placeholder={`${Math.round(defaultSalary)}`}
+                          />
+                        </div>
+                        {existingEntry && (
+                          <div className="text-xs text-green-600 w-24">
+                            Dostosowane
+                          </div>
+                        )}
+                        {existingEntry && (
+                          <button
+                            onClick={() =>
+                              setSalaryHistory(
+                                salaryHistory.filter(
+                                  (entry) => entry.year !== year
+                                )
+                              )
+                            }
+                            className="text-zus-red hover:text-red-700 font-semibold text-sm"
+                            aria-label={`Przywróć domyślną wartość dla roku ${year}`}
+                          >
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    );
                   }
                 )}
               </div>
