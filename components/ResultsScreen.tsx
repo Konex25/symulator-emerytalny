@@ -18,9 +18,13 @@ interface ResultsScreenProps {
 
 export default function ResultsScreen({ result, input }: ResultsScreenProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [postalCode, setPostalCode] = useState('');
-  const [postalCodeError, setPostalCodeError] = useState('');
+  const [postalCode, setPostalCode] = useState("");
+  const [postalCodeError, setPostalCodeError] = useState("");
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  // Oblicz lata do emerytury
+  const currentYear = new Date().getFullYear();
+  const yearsUntilRetirement = Math.max(0, input.workEndYear - currentYear);
 
   useEffect(() => {
     // Fade-in animation
@@ -30,61 +34,75 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
   const handlePostalCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPostalCode(value);
-    
+
     if (value && !validatePostalCode(value)) {
-      setPostalCodeError('Format: XX-XXX (np. 00-950)');
+      setPostalCodeError("Format: XX-XXX (np. 00-950)");
     } else {
-      setPostalCodeError('');
+      setPostalCodeError("");
     }
   };
 
   const handleGeneratePDF = () => {
     setIsGeneratingPDF(true);
-    
+
     try {
       // Zapisz w localStorage
       saveSimulationToLocalStorage(input, result, postalCode || undefined);
-      
+
       // Generuj PDF
       generatePDF(input, result, postalCode || undefined);
-      
+
       // Pokaż komunikat sukcesu
       setTimeout(() => {
         setIsGeneratingPDF(false);
-        alert('✓ Raport PDF został pobrany!');
+        alert("✓ Raport PDF został pobrany!");
       }, 500);
     } catch (error) {
-      console.error('Błąd generowania PDF:', error);
+      console.error("Błąd generowania PDF:", error);
       setIsGeneratingPDF(false);
-      alert('Wystąpił błąd podczas generowania raportu PDF');
+      alert("Wystąpił błąd podczas generowania raportu PDF");
     }
   };
 
   // Dane do wykresu porównawczego
   const comparisonData = [
     {
-      name: 'Twoja emerytura',
+      name: "Twoja emerytura",
       value: result.nominalPension,
-      color: 'rgb(0, 153, 63)', // zus-green
+      color: "rgb(0, 153, 63)", // zus-green
     },
     {
-      name: 'Średnia krajowa',
+      name: "Średnia krajowa",
       value: result.averagePension,
-      color: 'rgb(63, 132, 210)', // zus-blue
+      color: "rgb(63, 132, 210)", // zus-blue
     },
   ];
 
   // Dane do tabeli scenariuszy
   const scenarios = [
-    { label: 'Obecnie', years: 0, pension: result.nominalPension },
-    { label: 'Za 1 rok', years: 1, pension: result.laterRetirementScenarios.plusOneYear },
-    { label: 'Za 2 lata', years: 2, pension: result.laterRetirementScenarios.plusTwoYears },
-    { label: 'Za 5 lat', years: 5, pension: result.laterRetirementScenarios.plusFiveYears },
+    { label: "Obecnie", years: 0, pension: result.nominalPension },
+    {
+      label: "Za 1 rok",
+      years: 1,
+      pension: result.laterRetirementScenarios.plusOneYear,
+    },
+    {
+      label: "Za 2 lata",
+      years: 2,
+      pension: result.laterRetirementScenarios.plusTwoYears,
+    },
+    {
+      label: "Za 5 lat",
+      years: 5,
+      pension: result.laterRetirementScenarios.plusFiveYears,
+    },
   ];
 
   return (
-    <div 
-      className={`space-y-8 transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+    <div
+      className={`space-y-8 transition-opacity duration-1000 ${
+        isVisible ? "opacity-100" : "opacity-0"
+      }`}
       role="region"
       aria-label="Wyniki symulacji emerytalnej"
     >
@@ -94,7 +112,10 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
           Twoja prognoza emerytalna
         </h2>
         <p className="text-gray-600">
-          Rok przejścia na emeryturę: <span className="font-bold text-zus-green">{result.retirementYear}</span>
+          Rok przejścia na emeryturę:{" "}
+          <span className="font-bold text-zus-green">
+            {result.retirementYear}
+          </span>
         </p>
       </div>
 
@@ -107,9 +128,7 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
               <h3 className="text-lg font-semibold text-zus-darkblue mb-1">
                 Emerytura Nominalna
               </h3>
-              <p className="text-sm text-gray-600">
-                Wartość w przyszłości
-              </p>
+              <p className="text-sm text-gray-600">Wartość w przyszłości</p>
             </div>
             <div className="text-4xl">💰</div>
           </div>
@@ -128,9 +147,7 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
               <h3 className="text-lg font-semibold text-zus-darkblue mb-1">
                 Emerytura Realna
               </h3>
-              <p className="text-sm text-gray-600">
-                Siła nabywcza dzisiaj
-              </p>
+              <p className="text-sm text-gray-600">Siła nabywcza dzisiaj</p>
             </div>
             <div className="text-4xl">📊</div>
           </div>
@@ -152,13 +169,16 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
               Stopa zastąpienia: {formatPercent(result.replacementRate)}
             </h3>
             <p className="text-sm text-gray-700 mb-2">
-              Stosunek Twojej emerytury do ostatniego wynagrodzenia przed przejściem na emeryturę.
+              Stosunek Twojej emerytury do ostatniego wynagrodzenia przed
+              przejściem na emeryturę.
             </p>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
-                <div 
+                <div
                   className="bg-zus-green h-full rounded-full transition-all duration-1000"
-                  style={{ width: `${Math.min(result.replacementRate * 100, 100)}%` }}
+                  style={{
+                    width: `${Math.min(result.replacementRate * 100, 100)}%`,
+                  }}
                   role="progressbar"
                   aria-valuenow={result.replacementRate * 100}
                   aria-valuemin={0}
@@ -170,11 +190,11 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              {result.replacementRate >= 0.7 
-                ? '✅ Bardzo dobra stopa zastąpienia!' 
+              {result.replacementRate >= 0.7
+                ? "✅ Bardzo dobra stopa zastąpienia!"
                 : result.replacementRate >= 0.55
-                ? '✓ Dobra stopa zastąpienia'
-                : '⚠️ Rozważ dłuższą pracę lub dodatkowe oszczędności'}
+                ? "✓ Dobra stopa zastąpienia"
+                : "⚠️ Rozważ dłuższą pracę lub dodatkowe oszczędności"}
             </p>
           </div>
         </div>
@@ -186,37 +206,42 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
           Porównanie z średnią krajową
         </h3>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart 
+          <BarChart
             data={comparisonData}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis 
-              dataKey="name" 
-              tick={{ fill: '#374151', fontSize: 14 }}
-              axisLine={{ stroke: '#9ca3af' }}
+            <XAxis
+              dataKey="name"
+              tick={{ fill: "#374151", fontSize: 14 }}
+              axisLine={{ stroke: "#9ca3af" }}
             />
-            <YAxis 
-              tick={{ fill: '#374151', fontSize: 12 }}
-              axisLine={{ stroke: '#9ca3af' }}
-              label={{ value: 'PLN', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
-            />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'white', 
-                border: '2px solid rgb(0, 153, 63)',
-                borderRadius: '8px',
-                padding: '12px'
+            <YAxis
+              tick={{ fill: "#374151", fontSize: 12 }}
+              axisLine={{ stroke: "#9ca3af" }}
+              label={{
+                value: "PLN",
+                angle: -90,
+                position: "insideLeft",
+                style: { fill: "#6b7280" },
               }}
-              formatter={(value: number) => [formatCurrency(value), 'Emerytura']}
-              labelStyle={{ color: 'rgb(0, 65, 110)', fontWeight: 'bold' }}
             />
-            <Legend 
-              wrapperStyle={{ paddingTop: '20px' }}
-              iconType="circle"
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "white",
+                border: "2px solid rgb(0, 153, 63)",
+                borderRadius: "8px",
+                padding: "12px",
+              }}
+              formatter={(value: number) => [
+                formatCurrency(value),
+                "Emerytura",
+              ]}
+              labelStyle={{ color: "rgb(0, 65, 110)", fontWeight: "bold" }}
             />
-            <Bar 
-              dataKey="value" 
+            <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="circle" />
+            <Bar
+              dataKey="value"
               name="Miesięczna emerytura"
               radius={[8, 8, 0, 0]}
             >
@@ -230,11 +255,13 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
           <p className="text-sm text-gray-600">
             {result.nominalPension > result.averagePension ? (
               <span className="text-zus-green font-semibold">
-                ✓ Twoja emerytura jest wyższa od średniej o {formatCurrency(result.nominalPension - result.averagePension)}
+                ✓ Twoja emerytura jest wyższa od średniej o{" "}
+                {formatCurrency(result.nominalPension - result.averagePension)}
               </span>
             ) : (
               <span className="text-zus-red font-semibold">
-                Twoja emerytura jest niższa od średniej o {formatCurrency(result.averagePension - result.nominalPension)}
+                Twoja emerytura jest niższa od średniej o{" "}
+                {formatCurrency(result.averagePension - result.nominalPension)}
               </span>
             )}
           </p>
@@ -254,7 +281,7 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
           <li>Krótszemu okresowi wypłaty emerytury</li>
           <li>Wyższej podstawie obliczeniowej</li>
         </ul>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -276,20 +303,25 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
             <tbody>
               {scenarios.map((scenario, index) => {
                 const increase = scenario.pension - result.nominalPension;
-                const increasePercent = (increase / result.nominalPension) * 100;
-                
+                const increasePercent =
+                  (increase / result.nominalPension) * 100;
+
                 return (
-                  <tr 
+                  <tr
                     key={index}
                     className={`border-b border-gray-200 hover:bg-gray-50 transition-colors ${
-                      index === 0 ? 'bg-zus-blue/5 font-semibold' : ''
+                      index === 0 ? "bg-zus-blue/5 font-semibold" : ""
                     }`}
                   >
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {scenario.label}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-700">
-                      {scenario.years === 0 ? '—' : `+${scenario.years} ${scenario.years === 1 ? 'rok' : 'lata/lat'}`}
+                      {scenario.years === 0
+                        ? "—"
+                        : `+${scenario.years} ${
+                            scenario.years === 1 ? "rok" : "lata/lat"
+                          }`}
                     </td>
                     <td className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue">
                       {formatCurrency(scenario.pension)}
@@ -299,7 +331,8 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
                         <span className="text-gray-400">—</span>
                       ) : (
                         <span className="text-zus-green font-semibold">
-                          +{formatCurrency(increase)} ({increasePercent.toFixed(1)}%)
+                          +{formatCurrency(increase)} (
+                          {increasePercent.toFixed(1)}%)
                         </span>
                       )}
                     </td>
@@ -319,7 +352,9 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Twoja prognozowana emerytura:</p>
+              <p className="text-sm text-gray-600 mb-1">
+                Twoja prognozowana emerytura:
+              </p>
               <p className="text-3xl font-bold text-zus-green">
                 {formatCurrency(result.nominalPension)}
               </p>
@@ -331,17 +366,18 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
               </p>
             </div>
           </div>
-          
+
           {result.nominalPension >= input.desiredPension ? (
             <div className="bg-zus-green/10 border border-zus-green rounded-lg p-4">
               <p className="text-zus-green font-bold text-lg mb-2">
                 🎉 Gratulacje! Osiągniesz swój cel!
               </p>
               <p className="text-sm text-gray-700">
-                Twoja prognozowana emerytura przekracza Twoje oczekiwania o{' '}
+                Twoja prognozowana emerytura przekracza Twoje oczekiwania o{" "}
                 <span className="font-semibold">
                   {formatCurrency(result.nominalPension - input.desiredPension)}
-                </span>.
+                </span>
+                .
               </p>
             </div>
           ) : (
@@ -349,21 +385,27 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
               <p className="text-zus-darkblue font-bold text-lg mb-2">
                 📊 Aby osiągnąć swój cel...
               </p>
-              {result.yearsNeededForGoal !== undefined && result.yearsNeededForGoal > 0 ? (
+              {result.yearsNeededForGoal !== undefined &&
+              result.yearsNeededForGoal > 0 ? (
                 <p className="text-sm text-gray-700 mb-2">
-                  Musisz pracować o{' '}
+                  Musisz pracować o{" "}
                   <span className="font-bold text-zus-red text-lg">
-                    {result.yearsNeededForGoal} {result.yearsNeededForGoal === 1 ? 'rok' : 'lata/lat'}
-                  </span>{' '}
-                  dłużej, aby osiągnąć emeryturę w wysokości {formatCurrency(input.desiredPension)}.
+                    {result.yearsNeededForGoal}{" "}
+                    {result.yearsNeededForGoal === 1 ? "rok" : "lata/lat"}
+                  </span>{" "}
+                  dłużej, aby osiągnąć emeryturę w wysokości{" "}
+                  {formatCurrency(input.desiredPension)}.
                 </p>
               ) : (
                 <p className="text-sm text-gray-700 mb-2">
-                  Różnica wynosi {formatCurrency(input.desiredPension - result.nominalPension)}.
+                  Różnica wynosi{" "}
+                  {formatCurrency(input.desiredPension - result.nominalPension)}
+                  .
                 </p>
               )}
               <p className="text-xs text-gray-600 mt-3">
-                💡 Rozważ także dodatkowe oszczędności w III filarze (IKE, IKZE) lub dłuższą pracę.
+                💡 Rozważ także dodatkowe oszczędności w III filarze (IKE, IKZE)
+                lub dłuższą pracę.
               </p>
             </div>
           )}
@@ -380,33 +422,47 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
             <div className="text-4xl">🏥</div>
             <div className="flex-1">
               <p className="text-sm text-gray-700 mb-4">
-                Uwzględniliśmy średnią liczbę dni zwolnienia lekarskiego:{' '}
+                Uwzględniliśmy średnią liczbę dni zwolnienia lekarskiego:{" "}
                 <span className="font-semibold">
-                  {input.sex === 'male' ? '12 dni/rok (mężczyźni)' : '16 dni/rok (kobiety)'}
+                  {input.sex === "male"
+                    ? "12 dni/rok (mężczyźni)"
+                    : "16 dni/rok (kobiety)"}
                 </span>
               </p>
-              
+
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-gray-600 mb-1">Strata w emeryturze:</p>
+                    <p className="text-xs text-gray-600 mb-1">
+                      Strata w emeryturze:
+                    </p>
                     <p className="text-2xl font-bold text-zus-red">
                       {formatCurrency(result.sickLeaveImpact.difference)}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">miesięcznie</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600 mb-1">Procent zmniejszenia:</p>
-                    <p className="text-2xl font-bold text-zus-darkblue">
-                      {((result.sickLeaveImpact.difference / result.nominalPension) * 100).toFixed(1)}%
+                    <p className="text-xs text-gray-600 mb-1">
+                      Procent zmniejszenia:
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">całkowitej emerytury</p>
+                    <p className="text-2xl font-bold text-zus-darkblue">
+                      {(
+                        (result.sickLeaveImpact.difference /
+                          result.nominalPension) *
+                        100
+                      ).toFixed(1)}
+                      %
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      całkowitej emerytury
+                    </p>
                   </div>
                 </div>
               </div>
-              
+
               <p className="text-xs text-gray-600 mt-4">
-                💡 Podczas zwolnienia lekarskiego składki emerytalne są niższe (80% podstawy), co wpływa na wysokość przyszłej emerytury.
+                💡 Podczas zwolnienia lekarskiego składki emerytalne są niższe
+                (80% podstawy), co wpływa na wysokość przyszłej emerytury.
               </p>
             </div>
           </div>
@@ -414,16 +470,16 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
       )}
 
       {/* Dashboard zaawansowany */}
-      <AdvancedDashboard 
+      <AdvancedDashboard
         initialInput={input}
         onRecalculate={(updatedInput) => {
-          console.log('Przeliczanie z nowymi danymi:', updatedInput);
+          console.log("Przeliczanie z nowymi danymi:", updatedInput);
           // Tutaj możesz dodać logikę wywołania API z nowymi parametrami
         }}
       />
 
       {/* ===== NOWE SEKCJE: Przystępna edukacja emerytalna ===== */}
-      
+
       {/* Gap Analysis - Analiza luki do celu */}
       {input.desiredPension && (
         <GapAnalysis
@@ -447,6 +503,7 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
       <ScenarioComparer
         currentPension={result.nominalPension}
         currentSalary={input.grossSalary}
+        yearsUntilRetirement={yearsUntilRetirement}
         targetPension={input.desiredPension}
       />
 
@@ -456,8 +513,9 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
           Pobierz raport PDF
         </h3>
         <p className="text-sm text-gray-600 mb-6">
-          Zapisz szczegółowy raport z wynikami symulacji w formacie PDF. 
-          Opcjonalnie możesz podać kod pocztowy (dane wykorzystywane do analiz regionalnych ZUS).
+          Zapisz szczegółowy raport z wynikami symulacji w formacie PDF.
+          Opcjonalnie możesz podać kod pocztowy (dane wykorzystywane do analiz
+          regionalnych ZUS).
         </p>
 
         {/* Pole kodu pocztowego */}
@@ -472,17 +530,28 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
             onChange={handlePostalCodeChange}
             placeholder="np. 00-950"
             maxLength={6}
-            className={`input-field max-w-xs ${postalCodeError ? 'border-zus-red' : ''}`}
-            aria-invalid={postalCodeError ? 'true' : 'false'}
-            aria-describedby={postalCodeError ? 'postal-code-error postal-code-help' : 'postal-code-help'}
+            className={`input-field max-w-xs ${
+              postalCodeError ? "border-zus-red" : ""
+            }`}
+            aria-invalid={postalCodeError ? "true" : "false"}
+            aria-describedby={
+              postalCodeError
+                ? "postal-code-error postal-code-help"
+                : "postal-code-help"
+            }
           />
           {postalCodeError && (
-            <p id="postal-code-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="postal-code-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {postalCodeError}
             </p>
           )}
           <p id="postal-code-help" className="text-xs text-gray-500 mt-1">
-            Format: XX-XXX (np. 00-950). Dane są anonimowe i służą do analiz regionalnych.
+            Format: XX-XXX (np. 00-950). Dane są anonimowe i służą do analiz
+            regionalnych.
           </p>
         </div>
 
@@ -490,22 +559,40 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
         <div className="flex flex-col sm:flex-row gap-3 items-center">
           <button
             onClick={handleGeneratePDF}
-            disabled={isGeneratingPDF || (postalCode !== '' && !!postalCodeError)}
+            disabled={
+              isGeneratingPDF || (postalCode !== "" && !!postalCodeError)
+            }
             className="btn-primary text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGeneratingPDF ? (
               <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Generowanie...
               </span>
             ) : (
-              '📄 Pobierz raport PDF'
+              "📄 Pobierz raport PDF"
             )}
           </button>
-          
+
           <p className="text-xs text-gray-500">
             Raport zawiera wszystkie dane i wyniki symulacji
           </p>
@@ -522,9 +609,9 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
             Zaplanuj swoją przyszłość emerytalną już dziś
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button 
+            <button
               className="bg-white text-zus-green px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             >
               🔄 Nowa symulacja
             </button>

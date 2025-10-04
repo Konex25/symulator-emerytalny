@@ -488,10 +488,6 @@ export function calculateFullSimulation(
     grossSalary,
     workStartYear,
     workEndYear,
-    zusAccount,
-    zusSubAccount,
-    startCapital,
-    ofeAccount,
     includeSickLeave,
     desiredPension,
   } = input;
@@ -586,16 +582,22 @@ export function calculateGap(currentPension: number, targetPension: number) {
  */
 export function calculateWorkLongerScenarios(
   basePension: number,
-  grossSalary: number,
+  currentSalary: number,
+  yearsUntilRetirement: number,
   targetPension?: number
 ) {
   const scenarios = [];
+
+  // Oblicz przyszłe wynagrodzenie (tak jak w calculateFullSimulation)
+  const futureGrossSalary =
+    currentSalary *
+    Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsUntilRetirement);
 
   for (let years = 1; years <= 10; years++) {
     const newPension = calculateLaterRetirementBonus(
       basePension,
       years,
-      grossSalary
+      futureGrossSalary
     );
     const percentageIncrease = ((newPension - basePension) / basePension) * 100;
     const meetsGoal = targetPension ? newPension >= targetPension : false;

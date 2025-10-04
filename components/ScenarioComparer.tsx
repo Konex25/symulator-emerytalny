@@ -6,28 +6,31 @@ import { useState } from 'react';
 interface ScenarioComparerProps {
   currentPension: number;
   currentSalary: number;
+  yearsUntilRetirement: number;
   targetPension?: number;
 }
 
 export default function ScenarioComparer({
   currentPension,
   currentSalary,
+  yearsUntilRetirement,
   targetPension,
 }: ScenarioComparerProps) {
-  const [activeTab, setActiveTab] = useState<'work' | 'income'>('work');
-  
+  const [activeTab, setActiveTab] = useState<"work" | "income">("work");
+
   const workScenarios = calculateWorkLongerScenarios(
     currentPension,
     currentSalary,
+    yearsUntilRetirement,
     targetPension
   );
-  
+
   const incomeScenarios = calculateExtraIncomeScenarios(
     currentPension,
     currentSalary,
     targetPension
   );
-  
+
   // Top 5 najbardziej efektywnych scenariuszy dodatkowego dochodu
   const topIncomeScenarios = incomeScenarios.slice(0, 8);
 
@@ -48,21 +51,21 @@ export default function ScenarioComparer({
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
         <button
-          onClick={() => setActiveTab('work')}
+          onClick={() => setActiveTab("work")}
           className={`px-4 py-2 font-medium transition-colors border-b-2 ${
-            activeTab === 'work'
-              ? 'border-zus-green dark:border-zus-gold text-zus-green dark:text-zus-gold'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            activeTab === "work"
+              ? "border-zus-green dark:border-zus-gold text-zus-green dark:text-zus-gold"
+              : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           }`}
         >
           ⏰ Dłuższa praca
         </button>
         <button
-          onClick={() => setActiveTab('income')}
+          onClick={() => setActiveTab("income")}
           className={`px-4 py-2 font-medium transition-colors border-b-2 ${
-            activeTab === 'income'
-              ? 'border-zus-green dark:border-zus-gold text-zus-green dark:text-zus-gold'
-              : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            activeTab === "income"
+              ? "border-zus-green dark:border-zus-gold text-zus-green dark:text-zus-gold"
+              : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           }`}
         >
           💼 Dodatkowy dochód
@@ -70,7 +73,7 @@ export default function ScenarioComparer({
       </div>
 
       {/* Work Longer Scenarios */}
-      {activeTab === 'work' && (
+      {activeTab === "work" && (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -94,13 +97,13 @@ export default function ScenarioComparer({
                 <tr
                   key={scenario.years}
                   className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                    scenario.meetsGoal ? 'bg-green-50 dark:bg-green-900/10' : ''
+                    scenario.meetsGoal ? "bg-green-50 dark:bg-green-900/10" : ""
                   }`}
                 >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900 dark:text-white">
-                        +{scenario.years} {scenario.years === 1 ? 'rok' : 'lat'}
+                        +{scenario.years} {scenario.years === 1 ? "rok" : "lat"}
                       </span>
                       {scenario.years <= 2 && (
                         <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded">
@@ -110,12 +113,12 @@ export default function ScenarioComparer({
                     </div>
                   </td>
                   <td className="py-3 px-4 text-right font-bold text-gray-900 dark:text-white">
-                    {scenario.pension.toLocaleString('pl-PL')} PLN
+                    {scenario.pension.toLocaleString("pl-PL")} PLN
                   </td>
                   <td className="py-3 px-4 text-right">
                     <div className="flex flex-col items-end">
                       <span className="text-green-600 dark:text-green-400 font-medium">
-                        +{scenario.increase.toLocaleString('pl-PL')} PLN
+                        +{scenario.increase.toLocaleString("pl-PL")} PLN
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
                         (+{scenario.percentageIncrease}%)
@@ -128,7 +131,9 @@ export default function ScenarioComparer({
                         ✓ Cel osiągnięty
                       </span>
                     ) : (
-                      <span className="text-gray-400 dark:text-gray-600">—</span>
+                      <span className="text-gray-400 dark:text-gray-600">
+                        —
+                      </span>
                     )}
                   </td>
                 </tr>
@@ -138,16 +143,17 @@ export default function ScenarioComparer({
 
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <p className="text-xs text-blue-800 dark:text-blue-300">
-              💡 <strong>Pamiętaj:</strong> Każdy dodatkowy rok pracy zwiększa Twoją emeryturę 
-              średnio o {workScenarios[0]?.percentageIncrease.toFixed(1)}% rocznie. To jeden z 
-              najpewniejszych sposobów na wyższą emeryturę!
+              💡 <strong>Pamiętaj:</strong> Każdy dodatkowy rok pracy zwiększa
+              Twoją emeryturę średnio o{" "}
+              {workScenarios[0]?.percentageIncrease.toFixed(1)}% rocznie. To
+              jeden z najpewniejszych sposobów na wyższą emeryturę!
             </p>
           </div>
         </div>
       )}
 
       {/* Extra Income Scenarios */}
-      {activeTab === 'income' && (
+      {activeTab === "income" && (
         <div className="space-y-4">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -175,7 +181,9 @@ export default function ScenarioComparer({
                   <tr
                     key={`${scenario.extraMonthlyIncome}-${scenario.durationYears}`}
                     className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                      scenario.meetsGoal ? 'bg-green-50 dark:bg-green-900/10' : ''
+                      scenario.meetsGoal
+                        ? "bg-green-50 dark:bg-green-900/10"
+                        : ""
                     }`}
                   >
                     <td className="py-3 px-4">
@@ -190,21 +198,22 @@ export default function ScenarioComparer({
                         )}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        Razem: {scenario.totalExtra.toLocaleString('pl-PL')} PLN
+                        Razem: {scenario.totalExtra.toLocaleString("pl-PL")} PLN
                       </div>
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-medium text-gray-700 dark:text-gray-300">
-                        {scenario.durationYears} {scenario.durationYears === 1 ? 'rok' : 'lat'}
+                        {scenario.durationYears}{" "}
+                        {scenario.durationYears === 1 ? "rok" : "lat"}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-right font-bold text-gray-900 dark:text-white">
-                      {scenario.pension.toLocaleString('pl-PL')} PLN
+                      {scenario.pension.toLocaleString("pl-PL")} PLN
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex flex-col items-end">
                         <span className="text-green-600 dark:text-green-400 font-medium">
-                          +{scenario.increase.toLocaleString('pl-PL')} PLN
+                          +{scenario.increase.toLocaleString("pl-PL")} PLN
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           (+{scenario.percentageIncrease.toFixed(2)}%)
@@ -212,14 +221,20 @@ export default function ScenarioComparer({
                       </div>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      {scenario.effort === 'low' && (
-                        <span className="text-green-600 dark:text-green-400">⭐</span>
+                      {scenario.effort === "low" && (
+                        <span className="text-green-600 dark:text-green-400">
+                          ⭐
+                        </span>
                       )}
-                      {scenario.effort === 'medium' && (
-                        <span className="text-yellow-600 dark:text-yellow-400">⭐⭐</span>
+                      {scenario.effort === "medium" && (
+                        <span className="text-yellow-600 dark:text-yellow-400">
+                          ⭐⭐
+                        </span>
                       )}
-                      {scenario.effort === 'high' && (
-                        <span className="text-orange-600 dark:text-orange-400">⭐⭐⭐</span>
+                      {scenario.effort === "high" && (
+                        <span className="text-orange-600 dark:text-orange-400">
+                          ⭐⭐⭐
+                        </span>
                       )}
                     </td>
                   </tr>
