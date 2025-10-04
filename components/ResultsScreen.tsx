@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import AdvancedDashboard from './AdvancedDashboard';
 import type { SimulationResult, SimulationInput } from '@/types';
-import { formatCurrency, formatPercent } from '@/utils/formatters';
+import { formatCurrency, formatPercent, validatePostalCode } from '@/utils/formatters';
+import { generatePDF, saveSimulationToLocalStorage } from '@/lib/pdf';
 
 interface ResultsScreenProps {
   result: SimulationResult;
@@ -13,11 +14,47 @@ interface ResultsScreenProps {
 
 export default function ResultsScreen({ result, input }: ResultsScreenProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [postalCode, setPostalCode] = useState('');
+  const [postalCodeError, setPostalCodeError] = useState('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     // Fade-in animation
     setIsVisible(true);
   }, []);
+
+  const handlePostalCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPostalCode(value);
+    
+    if (value && !validatePostalCode(value)) {
+      setPostalCodeError('Format: XX-XXX (np. 00-950)');
+    } else {
+      setPostalCodeError('');
+    }
+  };
+
+  const handleGeneratePDF = () => {
+    setIsGeneratingPDF(true);
+    
+    try {
+      // Zapisz w localStorage
+      saveSimulationToLocalStorage(input, result, postalCode || undefined);
+      
+      // Generuj PDF
+      generatePDF(input, result, postalCode || undefined);
+      
+      // Pokaż komunikat sukcesu
+      setTimeout(() => {
+        setIsGeneratingPDF(false);
+        alert('✓ Raport PDF został pobrany!');
+      }, 500);
+    } catch (error) {
+      console.error('Błąd generowania PDF:', error);
+      setIsGeneratingPDF(false);
+      alert('Wystąpił błąd podczas generowania raportu PDF');
+    }
+  };
 
   // Dane do wykresu porównawczego
   const comparisonData = [
@@ -381,28 +418,92 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
         }}
       />
 
+      {/* Kod pocztowy i pobieranie PDF */}
+      <div className="card bg-gradient-to-br from-zus-gold/10 to-white border-l-4 border-zus-gold">
+        <h3 className="text-2xl font-bold text-zus-darkblue mb-4">
+          Pobierz raport PDF
+        </h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Zapisz szczegółowy raport z wynikami symulacji w formacie PDF. 
+          Opcjonalnie możesz podać kod pocztowy (dane wykorzystywane do analiz regionalnych ZUS).
+        </p>
+
+        {/* Pole kodu pocztowego */}
+        <div className="mb-6">
+          <label htmlFor="postal-code" className="label">
+            Kod pocztowy (opcjonalnie)
+          </label>
+          <input
+            id="postal-code"
+            type="text"
+            value={postalCode}
+            onChange={handlePostalCodeChange}
+            placeholder="np. 00-950"
+            maxLength={6}
+            className={`input-field max-w-xs ${postalCodeError ? 'border-zus-red' : ''}`}
+            aria-invalid={postalCodeError ? 'true' : 'false'}
+            aria-describedby={postalCodeError ? 'postal-code-error postal-code-help' : 'postal-code-help'}
+          />
+          {postalCodeError && (
+            <p id="postal-code-error" className="text-zus-red text-sm mt-1" role="alert">
+              {postalCodeError}
+            </p>
+          )}
+          <p id="postal-code-help" className="text-xs text-gray-500 mt-1">
+            Format: XX-XXX (np. 00-950). Dane są anonimowe i służą do analiz regionalnych.
+          </p>
+        </div>
+
+        {/* Przycisk pobierz PDF */}
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <button
+            onClick={handleGeneratePDF}
+            disabled={isGeneratingPDF || (postalCode !== '' && !!postalCodeError)}
+            className="btn-primary text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isGeneratingPDF ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generowanie...
+              </span>
+            ) : (
+              '📄 Pobierz raport PDF'
+            )}
+          </button>
+          
+          <p className="text-xs text-gray-500">
+            Raport zawiera wszystkie dane i wyniki symulacji
+          </p>
+        </div>
+      </div>
+
       {/* Podsumowanie i CTA */}
       <div className="card bg-gradient-to-r from-zus-green to-zus-blue text-white">
         <div className="text-center">
           <h3 className="text-2xl font-bold mb-3">
-            Co dalej?
+            Dziękujemy za skorzystanie z symulatora!
           </h3>
           <p className="text-sm mb-6 opacity-90">
-            Możesz pobrać raport PDF lub rozpocząć nową symulację
+            Zaplanuj swoją przyszłość emerytalną już dziś
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button 
               className="bg-white text-zus-green px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             >
-              📝 Nowa symulacja
+              🔄 Nowa symulacja
             </button>
-            <button 
-              className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/30 transition-colors border border-white/40"
-              onClick={() => alert('Pobieranie PDF - dostępne w Milestone 7!')}
+            <a
+              href="https://www.zus.pl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white/20 backdrop-blur-sm text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/30 transition-colors border border-white/40 text-center"
             >
-              📄 Pobierz raport PDF
-            </button>
+              🌐 Odwiedź ZUS.pl
+            </a>
           </div>
         </div>
       </div>
