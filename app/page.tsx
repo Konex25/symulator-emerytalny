@@ -84,32 +84,40 @@ export default function Home() {
     setDesiredPension(amount);
   };
 
-  const handleFormSuccess = (calculatedResult: SimulationResult, input: SimulationInput) => {
+  const handleFormSuccess = (
+    calculatedResult: SimulationResult,
+    input: SimulationInput
+  ) => {
     setResult(calculatedResult);
     setInputData(input);
     markStepCompleted(1);
+    // Automatically proceed to step 2 (details)
+    setCurrentStep(2);
   };
 
-  const handleRecalculate = (newResult: SimulationResult, newInput: SimulationInput) => {
+  const handleRecalculate = (
+    newResult: SimulationResult,
+    newInput: SimulationInput
+  ) => {
     setResult(newResult);
     setInputData(newInput);
   };
 
   const handleAdvancedRecalculate = async (updatedInput: SimulationInput) => {
     try {
-      const response = await fetch('/api/calculate-pension', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/calculate-pension", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedInput),
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok && data.result) {
         handleRecalculate(data.result, updatedInput);
       }
     } catch (error) {
-      console.error('Error recalculating:', error);
+      console.error("Error recalculating:", error);
     }
   };
 
@@ -150,7 +158,7 @@ export default function Home() {
     setResult(null);
     setInputData(null);
     setDesiredPension(undefined);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Landing screen (before wizard)
@@ -284,7 +292,8 @@ export default function Home() {
                   {formatCurrency(result.realPension)}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Kwota skorygowana o przewidywaną inflację ({formatPercent(0.02)} rocznie).
+                  Kwota skorygowana o przewidywaną inflację (
+                  {formatPercent(0.02)} rocznie).
                 </p>
               </div>
             </div>
@@ -405,17 +414,23 @@ export default function Home() {
                       {
                         label: "Za 1 rok",
                         years: 1,
-                        pension: result.laterRetirementScenarios.plusOneYear,
+                        pension:
+                          result.laterRetirementScenarios?.plusOneYear ||
+                          result.nominalPension,
                       },
                       {
                         label: "Za 2 lata",
                         years: 2,
-                        pension: result.laterRetirementScenarios.plusTwoYears,
+                        pension:
+                          result.laterRetirementScenarios?.plusTwoYears ||
+                          result.nominalPension,
                       },
                       {
                         label: "Za 5 lat",
                         years: 5,
-                        pension: result.laterRetirementScenarios.plusFiveYears,
+                        pension:
+                          result.laterRetirementScenarios?.plusFiveYears ||
+                          result.nominalPension,
                       },
                     ].map((scenario, index) => (
                       <tr
