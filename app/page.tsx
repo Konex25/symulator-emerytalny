@@ -88,13 +88,29 @@ export default function Home() {
     setResult(calculatedResult);
     setInputData(input);
     markStepCompleted(1);
-    // Automatically proceed to step 2 (details)
-    setCurrentStep(2);
   };
 
   const handleRecalculate = (newResult: SimulationResult, newInput: SimulationInput) => {
     setResult(newResult);
     setInputData(newInput);
+  };
+
+  const handleAdvancedRecalculate = async (updatedInput: SimulationInput) => {
+    try {
+      const response = await fetch('/api/calculate-pension', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedInput),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.result) {
+        handleRecalculate(data.result, updatedInput);
+      }
+    } catch (error) {
+      console.error('Error recalculating:', error);
+    }
   };
 
   const markStepCompleted = (step: number) => {
@@ -202,7 +218,7 @@ export default function Home() {
         {result && inputData && (
           <AdvancedDashboard
             initialInput={inputData}
-            onRecalculate={handleRecalculate}
+            onRecalculate={handleAdvancedRecalculate}
           />
         )}
       </StepContainer>
