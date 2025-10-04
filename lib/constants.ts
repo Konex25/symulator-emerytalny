@@ -41,7 +41,7 @@ export const SICK_LEAVE_AVERAGES = {
 export const VALIDATION_LIMITS = {
   minAge: 18,
   maxAge: 67,
-  minSalary: 3000,
+  minSalary: 4666,
   maxSalary: 100000,
   minWorkYear: 1960,
   maxWorkYear: 2100, // Pozwalamy na rok zakończenia pracy do 2100

@@ -195,7 +195,7 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
             </p>
           )}
           <p className="text-xs text-gray-600 mt-1">
-            Minimalne wynagrodzenie: 3000 PLN
+            Minimalne wynagrodzenie: 4666 PLN
           </p>
         </div>
 

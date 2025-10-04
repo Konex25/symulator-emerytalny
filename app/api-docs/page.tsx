@@ -35,24 +35,59 @@ export default function APIDocsPage() {
 
           <h3 className="font-bold text-lg mb-2">Wymagane pola:</h3>
           <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700">
-            <li><code className="bg-gray-100 px-2 py-1 rounded">age</code> - wiek (18-67)</li>
-            <li><code className="bg-gray-100 px-2 py-1 rounded">sex</code> - płeć (&apos;male&apos; | &apos;female&apos;)</li>
-            <li><code className="bg-gray-100 px-2 py-1 rounded">grossSalary</code> - wynagrodzenie brutto (min 3000)</li>
-            <li><code className="bg-gray-100 px-2 py-1 rounded">workStartYear</code> - rok rozpoczęcia pracy (1960-2080)</li>
-            <li><code className="bg-gray-100 px-2 py-1 rounded">workEndYear</code> - rok zakończenia pracy</li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">age</code> - wiek
+              (18-67)
+            </li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">sex</code> - płeć
+              (&apos;male&apos; | &apos;female&apos;)
+            </li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">grossSalary</code>{" "}
+              - wynagrodzenie brutto (min 4666)
+            </li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">
+                workStartYear
+              </code>{" "}
+              - rok rozpoczęcia pracy (1960-2080)
+            </li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">workEndYear</code>{" "}
+              - rok zakończenia pracy
+            </li>
           </ul>
 
           <h3 className="font-bold text-lg mb-2">Opcjonalne pola:</h3>
           <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700">
-            <li><code className="bg-gray-100 px-2 py-1 rounded">zusAccount</code> - środki na koncie ZUS</li>
-            <li><code className="bg-gray-100 px-2 py-1 rounded">zusSubAccount</code> - środki na subkoncie</li>
-            <li><code className="bg-gray-100 px-2 py-1 rounded">includeSickLeave</code> - uwzględnij zwolnienia</li>
-            <li><code className="bg-gray-100 px-2 py-1 rounded">desiredPension</code> - oczekiwana emerytura</li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">zusAccount</code>{" "}
+              - środki na koncie ZUS
+            </li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">
+                zusSubAccount
+              </code>{" "}
+              - środki na subkoncie
+            </li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">
+                includeSickLeave
+              </code>{" "}
+              - uwzględnij zwolnienia
+            </li>
+            <li>
+              <code className="bg-gray-100 px-2 py-1 rounded">
+                desiredPension
+              </code>{" "}
+              - oczekiwana emerytura
+            </li>
           </ul>
 
           <h3 className="font-bold text-lg mb-2">Przykładowe zapytanie:</h3>
           <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-sm">
-{`fetch('/api/calculate-pension', {
+            {`fetch('/api/calculate-pension', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -73,21 +108,37 @@ export default function APIDocsPage() {
             Zwracane dane
           </h2>
           <ul className="list-disc list-inside space-y-2 text-gray-700">
-            <li><strong>nominalPension</strong> - nominalna kwota emerytury</li>
-            <li><strong>realPension</strong> - realna kwota (skorygowana o inflację)</li>
-            <li><strong>replacementRate</strong> - stopa zastąpienia</li>
-            <li><strong>averagePension</strong> - średnia emerytura w Polsce</li>
-            <li><strong>retirementYear</strong> - rok przejścia na emeryturę</li>
-            <li><strong>laterRetirementScenarios</strong> - scenariusze +1, +2, +5 lat</li>
-            <li><strong>yearsNeededForGoal</strong> - lata do osiągnięcia celu</li>
-            <li><strong>sickLeaveImpact</strong> - wpływ zwolnień (opcjonalnie)</li>
+            <li>
+              <strong>nominalPension</strong> - nominalna kwota emerytury
+            </li>
+            <li>
+              <strong>realPension</strong> - realna kwota (skorygowana o
+              inflację)
+            </li>
+            <li>
+              <strong>replacementRate</strong> - stopa zastąpienia
+            </li>
+            <li>
+              <strong>averagePension</strong> - średnia emerytura w Polsce
+            </li>
+            <li>
+              <strong>retirementYear</strong> - rok przejścia na emeryturę
+            </li>
+            <li>
+              <strong>laterRetirementScenarios</strong> - scenariusze +1, +2, +5
+              lat
+            </li>
+            <li>
+              <strong>yearsNeededForGoal</strong> - lata do osiągnięcia celu
+            </li>
+            <li>
+              <strong>sickLeaveImpact</strong> - wpływ zwolnień (opcjonalnie)
+            </li>
           </ul>
         </div>
 
         <div className="card">
-          <h2 className="text-2xl font-bold text-zus-green mb-4">
-            Test API
-          </h2>
+          <h2 className="text-2xl font-bold text-zus-green mb-4">Test API</h2>
           <p className="text-gray-700 mb-4">
             Kliknij przycisk aby przetestować API z przykładowymi danymi.
           </p>
@@ -96,7 +147,7 @@ export default function APIDocsPage() {
             disabled={loading}
             className="btn-primary disabled:opacity-50"
           >
-            {loading ? 'Testowanie...' : 'Uruchom Test API'}
+            {loading ? "Testowanie..." : "Uruchom Test API"}
           </button>
 
           {testResult && (

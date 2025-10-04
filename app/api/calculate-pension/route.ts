@@ -85,9 +85,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (body.grossSalary < 3000) {
+    if (body.grossSalary < 4666) {
       return NextResponse.json(
-        { error: "Wynagrodzenie musi być co najmniej 3000 PLN" },
+        { error: "Wynagrodzenie musi być co najmniej 4666 PLN" },
         { status: 400 }
       );
     }
