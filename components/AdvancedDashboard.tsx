@@ -8,11 +8,40 @@ import { formatCurrency } from '@/utils/formatters';
 interface AdvancedDashboardProps {
   initialInput: SimulationInput;
   onRecalculate?: (updatedInput: SimulationInput) => void;
+  onDataChange?: (
+    hasChanges: boolean,
+    updatedInput: SimulationInput | null
+  ) => void;
 }
 
-export default function AdvancedDashboard({ initialInput, onRecalculate }: AdvancedDashboardProps) {
+export default function AdvancedDashboard({
+  initialInput,
+  onRecalculate,
+  onDataChange,
+}: AdvancedDashboardProps) {
   const [salaryExpanded, setSalaryExpanded] = useState(false);
   const [salaryHistory, setSalaryHistory] = useState<SalaryHistory[]>([]);
+
+  // Notify parent when data changes
+  const notifyDataChange = (newHistory: SalaryHistory[]) => {
+    if (onDataChange) {
+      const hasChanges = newHistory.length > 0;
+      if (hasChanges) {
+        const yearlySalaries: { [year: number]: number } = {};
+        newHistory.forEach((entry) => {
+          yearlySalaries[entry.year] = entry.amount;
+        });
+        const updatedInput: SimulationInput = {
+          ...initialInput,
+          yearlySalaries:
+            Object.keys(yearlySalaries).length > 0 ? yearlySalaries : undefined,
+        };
+        onDataChange(true, updatedInput);
+      } else {
+        onDataChange(false, null);
+      }
+    }
+  };
 
   // Generuj dane do wykresu timeline
   const generateTimelineData = () => {
@@ -59,17 +88,18 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
     for (let year = startYear; year <= endYear; year++) {
       const yearsFromNow = currentYear - year;
       let salary: number;
-      
+
       // Sprawdź czy użytkownik dostosował to wynagrodzenie
       const customEntry = salaryHistory.find((entry) => entry.year === year);
-      
+
       if (customEntry) {
         salary = customEntry.amount;
       } else {
         // Oblicz domyślne wynagrodzenie z 4% wzrostem
-        salary = yearsFromNow >= 0
-          ? initialInput.grossSalary / Math.pow(1.04, yearsFromNow)
-          : initialInput.grossSalary * Math.pow(1.04, Math.abs(yearsFromNow));
+        salary =
+          yearsFromNow >= 0
+            ? initialInput.grossSalary / Math.pow(1.04, yearsFromNow)
+            : initialInput.grossSalary * Math.pow(1.04, Math.abs(yearsFromNow));
       }
 
       data.push({
@@ -82,29 +112,6 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
   };
 
   const salaryChartData = generateSalaryChartData();
-
-  const handleRemoveSalary = (index: number) => {
-    setSalaryHistory(salaryHistory.filter((_, i) => i !== index));
-  };
-
-  const handleRecalculate = () => {
-    if (onRecalculate) {
-      // Przygotuj zaktualizowane dane
-      const yearlySalaries: { [year: number]: number } = {};
-      salaryHistory.forEach((entry) => {
-        yearlySalaries[entry.year] = entry.amount;
-      });
-
-      const updatedInput: SimulationInput = {
-        ...initialInput,
-        yearlySalaries:
-          Object.keys(yearlySalaries).length > 0 ? yearlySalaries : undefined,
-      };
-
-      // Wywołaj callback - ResultsScreen obsłuży API call
-      onRecalculate(updatedInput);
-    }
-  };
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -316,25 +323,26 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
                                 const updatedHistory = salaryHistory.filter(
                                   (entry) => entry.year !== year
                                 );
-                                setSalaryHistory(
-                                  [
-                                    ...updatedHistory,
-                                    { year, amount: newValue },
-                                  ].sort((a, b) => a.year - b.year)
-                                );
+                                const newHistory = [
+                                  ...updatedHistory,
+                                  { year, amount: newValue },
+                                ].sort((a, b) => a.year - b.year);
+                                setSalaryHistory(newHistory);
+                                notifyDataChange(newHistory);
                               } else if (e.target.value === "") {
                                 // Pozwól na puste pole podczas edycji
                                 const updatedHistory = salaryHistory.filter(
                                   (entry) => entry.year !== year
                                 );
                                 setSalaryHistory(updatedHistory);
+                                notifyDataChange(updatedHistory);
                               } else {
                                 // Usuń wpis jeśli wartość jest 0 lub nieprawidłowa
-                                setSalaryHistory(
-                                  salaryHistory.filter(
-                                    (entry) => entry.year !== year
-                                  )
+                                const newHistory = salaryHistory.filter(
+                                  (entry) => entry.year !== year
                                 );
+                                setSalaryHistory(newHistory);
+                                notifyDataChange(newHistory);
                               }
                             }}
                             onBlur={(e) => {
@@ -347,6 +355,7 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
                                   (entry) => entry.year !== year
                                 );
                                 setSalaryHistory(updatedHistory);
+                                notifyDataChange(updatedHistory);
                               }
                             }}
                             className="input-field w-full"
@@ -355,6 +364,7 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
                             placeholder={`${Math.round(defaultSalary)}`}
                           />
                         </div>
+                        ;
                         {existingEntry && (
                           <div className="text-xs text-green-600 w-24">
                             Dostosowane
@@ -362,13 +372,13 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
                         )}
                         {existingEntry && (
                           <button
-                            onClick={() =>
-                              setSalaryHistory(
-                                salaryHistory.filter(
-                                  (entry) => entry.year !== year
-                                )
-                              )
-                            }
+                            onClick={() => {
+                              const newHistory = salaryHistory.filter(
+                                (entry) => entry.year !== year
+                              );
+                              setSalaryHistory(newHistory);
+                              notifyDataChange(newHistory);
+                            }}
                             className="text-zus-red hover:text-red-700 font-semibold text-sm"
                             aria-label={`Przywróć domyślną wartość dla roku ${year}`}
                           >
@@ -394,22 +404,6 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
           )}
         </div>
       </section>
-
-      {/* Przycisk przelicz ponownie */}
-      {salaryHistory.length > 0 && (
-        <div className="flex flex-col items-center gap-3 pt-4">
-          <button
-            onClick={handleRecalculate}
-            className="btn-primary text-lg px-8 py-4"
-          >
-            🔄 Przelicz ponownie z nowymi danymi
-          </button>
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            Uwaga: Zaawansowane przeliczenia uwzględnią podane przez Ciebie
-            szczegółowe dane.
-          </p>
-        </div>
-      )}
     </div>
   );
 }

@@ -70,6 +70,9 @@ export default function Home() {
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [inputData, setInputData] = useState<SimulationInput | null>(null);
   const [desiredPension, setDesiredPension] = useState<number | undefined>(undefined);
+  const [hasDataChanges, setHasDataChanges] = useState(false);
+  const [updatedInputFromStep2, setUpdatedInputFromStep2] =
+    useState<SimulationInput | null>(null);
 
   // Scroll to top when step changes
   useEffect(() => {
@@ -122,6 +125,14 @@ export default function Home() {
     }
   };
 
+  const handleDataChange = (
+    hasChanges: boolean,
+    updatedInput: SimulationInput | null
+  ) => {
+    setHasDataChanges(hasChanges);
+    setUpdatedInputFromStep2(updatedInput);
+  };
+
   const markStepCompleted = (step: number) => {
     if (!completedSteps.includes(step)) {
       setCompletedSteps([...completedSteps, step]);
@@ -132,7 +143,14 @@ export default function Home() {
     setCurrentStep(step);
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
+    // If we're on step 2 and there are data changes, recalculate before moving forward
+    if (currentStep === 2 && hasDataChanges && updatedInputFromStep2) {
+      await handleAdvancedRecalculate(updatedInputFromStep2);
+      setHasDataChanges(false);
+      setUpdatedInputFromStep2(null);
+    }
+
     markStepCompleted(currentStep);
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
@@ -145,7 +163,14 @@ export default function Home() {
     }
   };
 
-  const skipStep = () => {
+  const skipStep = async () => {
+    // If we're on step 2 and there are data changes, recalculate before moving forward
+    if (currentStep === 2 && hasDataChanges && updatedInputFromStep2) {
+      await handleAdvancedRecalculate(updatedInputFromStep2);
+      setHasDataChanges(false);
+      setUpdatedInputFromStep2(null);
+    }
+
     markStepCompleted(currentStep);
     if (currentStep < STEPS.length) {
       setCurrentStep(currentStep + 1);
@@ -228,6 +253,7 @@ export default function Home() {
           <AdvancedDashboard
             initialInput={inputData}
             onRecalculate={handleAdvancedRecalculate}
+            onDataChange={handleDataChange}
           />
         )}
       </StepContainer>
