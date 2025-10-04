@@ -4,10 +4,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { simulationFormSchema, calculateDefaultWorkEndYear, type SimulationFormData } from '@/lib/validationSchema';
-import type { SimulationResult } from '@/types';
+import type { SimulationResult, SimulationInput } from '@/types';
 
 interface SimulationFormProps {
-  onSuccess?: (result: SimulationResult) => void;
+  onSuccess?: (result: SimulationResult, input: SimulationInput) => void;
   desiredPension?: number;
 }
 
@@ -69,7 +69,18 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
       }
 
       if (onSuccess && result.result) {
-        onSuccess(result.result);
+        const inputForCallback: SimulationInput = {
+          age: payload.age,
+          sex: payload.sex,
+          grossSalary: payload.grossSalary,
+          workStartYear: payload.workStartYear,
+          workEndYear: payload.workEndYear,
+          zusAccount: payload.zusAccount,
+          zusSubAccount: payload.zusSubAccount,
+          includeSickLeave: payload.includeSickLeave,
+          desiredPension: payload.desiredPension,
+        };
+        onSuccess(result.result, inputForCallback);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd');
