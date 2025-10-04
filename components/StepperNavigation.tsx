@@ -125,8 +125,7 @@ export default function StepperNavigation({
               Krok {currentStep} z {steps.length}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {Math.round((completedSteps.length / steps.length) * 100)}%
-              ukończone
+              {Math.round((currentStep / steps.length) * 100)}% ukończone
             </div>
           </div>
 
