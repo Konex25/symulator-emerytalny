@@ -450,6 +450,17 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
         targetPension={input.desiredPension}
       />
 
+      {/* Timeline Visualizer - Ścieżka do celu */}
+      {input.desiredPension && (
+        <TimelineVisualizer
+          currentAge={input.age}
+          retirementAge={RETIREMENT_AGE[input.sex]}
+          currentPension={result.nominalPension}
+          targetPension={input.desiredPension}
+          currentSalary={input.grossSalary}
+        />
+      )}
+
       {/* Kod pocztowy i pobieranie PDF */}
       <div className="card bg-gradient-to-br from-zus-gold/10 to-white border-l-4 border-zus-gold">
         <h3 className="text-2xl font-bold text-zus-darkblue mb-4">

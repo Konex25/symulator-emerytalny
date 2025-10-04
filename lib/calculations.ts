@@ -580,3 +580,144 @@ function calculateMonthlyInvestmentForGoal(gap: number, years: number): number {
   return Math.ceil(monthlyPayment / 50) * 50; // Zaokrągl do 50 PLN
 }
 
+/**
+ * Oblicza kluczowe punkty na ścieżce do celu emerytalnego (timeline)
+ */
+export function calculateTimelineMilestones(
+  currentAge: number,
+  retirementAge: number,
+  currentPension: number,
+  targetPension: number,
+  currentSalary: number,
+  selectedStrategy?: {
+    type: 'work_longer' | 'extra_income' | 'combined';
+    extraIncome?: number;
+    extraDuration?: number;
+    workLongerYears?: number;
+  }
+) {
+  const currentYear = new Date().getFullYear();
+  const yearsUntilRetirement = retirementAge - currentAge;
+  const retirementYear = currentYear + yearsUntilRetirement;
+  
+  const milestones = [];
+  
+  // 1. OBECNIE
+  milestones.push({
+    year: currentYear,
+    age: currentAge,
+    label: 'Teraz',
+    description: 'Twoja obecna sytuacja',
+    pension: currentPension,
+    icon: '📍',
+    type: 'current',
+    actions: [],
+  });
+  
+  // 2. PUNKTY POŚREDNIE (co 25% drogi)
+  const quarterYears = Math.floor(yearsUntilRetirement / 4);
+  
+  if (yearsUntilRetirement >= 8) {
+    // Funkcja pomocnicza: szacuje emeryturę na podstawie % drogi do emerytury
+    const estimatePensionProgress = (progressPercent: number) => {
+      // Zakładamy liniowy wzrost od 0 do currentPension
+      return currentPension * progressPercent;
+    };
+    
+    // Punkt 25%
+    const year25 = currentYear + quarterYears;
+    const age25 = currentAge + quarterYears;
+    const pension25 = estimatePensionProgress(0.25);
+    
+    milestones.push({
+      year: year25,
+      age: age25,
+      label: `Za ${quarterYears} lat`,
+      description: 'Pierwszy etap - 25% drogi',
+      pension: Math.round(pension25 * 100) / 100,
+      icon: '🎯',
+      type: 'milestone',
+      actions: selectedStrategy?.type === 'extra_income' || selectedStrategy?.type === 'combined'
+        ? [`Dodatkowy dochód: ${selectedStrategy.extraIncome} PLN/mies`]
+        : ['Kontynuuj składki do ZUS', 'Oszczędzaj systematycznie'],
+    });
+    
+    // Punkt 50%
+    const year50 = currentYear + quarterYears * 2;
+    const age50 = currentAge + quarterYears * 2;
+    const pension50 = estimatePensionProgress(0.50);
+    
+    milestones.push({
+      year: year50,
+      age: age50,
+      label: `Za ${quarterYears * 2} lat`,
+      description: 'W połowie drogi',
+      pension: Math.round(pension50 * 100) / 100,
+      icon: '⚡',
+      type: 'milestone',
+      actions: ['Sprawdź postępy', 'Rozważ dostosowanie strategii'],
+    });
+    
+    // Punkt 75%
+    const year75 = currentYear + quarterYears * 3;
+    const age75 = currentAge + quarterYears * 3;
+    const pension75 = estimatePensionProgress(0.75);
+    
+    milestones.push({
+      year: year75,
+      age: age75,
+      label: `Za ${quarterYears * 3} lat`,
+      description: 'Finałowy odcinek - 75% drogi',
+      pension: Math.round(pension75 * 100) / 100,
+      icon: '🏃',
+      type: 'milestone',
+      actions: ['Zbliżasz się do celu', 'Przygotuj dokumenty emerytalne'],
+    });
+  }
+  
+  // 3. STANDARDOWA EMERYTURA
+  milestones.push({
+    year: retirementYear,
+    age: retirementAge,
+    label: 'Emerytura',
+    description: `Standardowy wiek (${retirementAge} lat)`,
+    pension: currentPension,
+    icon: '🎂',
+    type: 'retirement',
+    actions: ['Przejście na emeryturę'],
+  });
+  
+  // 4. CEL (jeśli nie osiągnięty)
+  if (currentPension < targetPension) {
+    const yearsToGoal = calculateYearsNeeded(currentPension, targetPension, currentSalary);
+    const goalYear = retirementYear + (selectedStrategy?.workLongerYears || yearsToGoal);
+    const goalAge = retirementAge + (selectedStrategy?.workLongerYears || yearsToGoal);
+    
+    if (yearsToGoal <= 15) {
+      milestones.push({
+        year: goalYear,
+        age: goalAge,
+        label: 'Cel osiągnięty!',
+        description: `Emerytura ${targetPension} PLN`,
+        pension: targetPension,
+        icon: '🎉',
+        type: 'goal',
+        actions: ['Gratulacje!', 'Osiągnąłeś swój cel'],
+      });
+    }
+  } else {
+    // Cel już osiągnięty
+    milestones[milestones.length - 1].type = 'goal';
+    milestones[milestones.length - 1].icon = '🎉';
+    milestones[milestones.length - 1].actions = ['Cel osiągnięty!', 'Możesz rozważyć wcześniejszą emeryturę'];
+  }
+  
+  return {
+    milestones,
+    totalYears: yearsUntilRetirement,
+    currentYear,
+    retirementYear,
+    hasGap: currentPension < targetPension,
+  };
+}
+
