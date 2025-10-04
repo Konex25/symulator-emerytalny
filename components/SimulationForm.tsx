@@ -25,6 +25,7 @@ export default function SimulationForm({
     handleSubmit,
     watch,
     setValue,
+    trigger,
     formState: { errors, isValid },
   } = useForm<SimulationFormData>({
     resolver: zodResolver(simulationFormSchema),
@@ -67,6 +68,9 @@ export default function SimulationForm({
     setValue("ofeAccount", 0);
     setValue("desiredPension", 5000);
     setValue("includeSickLeave", true);
+    
+    // Trigger walidacji aby odblokować przycisk
+    trigger();
     
     // Jeśli jest callback dla desiredPension, wywołaj go
     if (onDesiredPensionChange) {
