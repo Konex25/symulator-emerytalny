@@ -257,21 +257,6 @@ export default function LandingScreen({
           <p className="text-sm text-gray-600">Średnia stopa zastąpienia</p>
         </div>
       </section>
-
-      {/* Wezwanie do działania - powtórzone przed formularzem */}
-      <section className="card bg-gradient-to-r from-zus-green to-zus-darkblue text-white text-center py-12">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Gotowy, aby poznać swoją przyszłość?
-        </h2>
-        <p className="text-lg mb-8 opacity-90">
-          Wypełnij krótki formularz poniżej i zobacz prognozę swojej emerytury
-        </p>
-        <div className="flex items-center justify-center gap-2 text-2xl animate-bounce">
-          <span>👇</span>
-          <span>Przewiń w dół</span>
-          <span>👇</span>
-        </div>
-      </section>
     </div>
   );
 }
