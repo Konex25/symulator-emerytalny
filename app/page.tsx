@@ -88,7 +88,8 @@ export default function Home() {
     setResult(calculatedResult);
     setInputData(input);
     markStepCompleted(1);
-    // Skip to step 3 (results) or go to step 2 if user wants
+    // Automatically proceed to step 2 (details)
+    setCurrentStep(2);
   };
 
   const handleRecalculate = (newResult: SimulationResult, newInput: SimulationInput) => {
@@ -185,14 +186,6 @@ export default function Home() {
             onDesiredPensionChange={handleDesiredPensionChange}
           />
         </div>
-
-        {result && inputData && (
-          <div className="mt-6 text-center">
-            <button onClick={nextStep} className="btn-primary text-lg px-8 py-3">
-              Dalej - Zobacz szczegóły →
-            </button>
-          </div>
-        )}
       </StepContainer>
 
       {/* STEP 2: Advanced Options (Optional) */}
@@ -207,7 +200,10 @@ export default function Home() {
         canSkip={true}
       >
         {result && inputData && (
-          <AdvancedDashboard initialInput={inputData} onRecalculate={handleRecalculate} />
+          <AdvancedDashboard
+            initialInput={inputData}
+            onRecalculate={handleRecalculate}
+          />
         )}
       </StepContainer>
 
@@ -215,7 +211,9 @@ export default function Home() {
       <StepContainer
         stepNumber={3}
         title="Twoja prognoza emerytalna"
-        description={result ? `Rok przejścia na emeryturę: ${result.retirementYear}` : ''}
+        description={
+          result ? `Rok przejścia na emeryturę: ${result.retirementYear}` : ""
+        }
         isActive={currentStep === 3}
         onNext={nextStep}
         onPrev={prevStep}
@@ -226,9 +224,19 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="card bg-gradient-to-br from-zus-green/5 to-white dark:from-zus-green/10 dark:to-gray-800 border-2 border-zus-green">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-zus-darkblue dark:text-white">Emerytura Nominalna</h3>
-                  <svg className="w-8 h-8 text-zus-green" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z" clipRule="evenodd" />
+                  <h3 className="text-xl font-semibold text-zus-darkblue dark:text-white">
+                    Emerytura Nominalna
+                  </h3>
+                  <svg
+                    className="w-8 h-8 text-zus-green"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <p className="text-4xl font-bold text-zus-green mb-2">
@@ -241,29 +249,46 @@ export default function Home() {
 
               <div className="card bg-gradient-to-br from-zus-blue/5 to-white dark:from-zus-blue/10 dark:to-gray-800 border-2 border-zus-blue">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-zus-darkblue dark:text-white">Emerytura Realna</h3>
-                  <svg className="w-8 h-8 text-zus-blue" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z" clipRule="evenodd" />
+                  <h3 className="text-xl font-semibold text-zus-darkblue dark:text-white">
+                    Emerytura Realna
+                  </h3>
+                  <svg
+                    className="w-8 h-8 text-zus-blue"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V6z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <p className="text-4xl font-bold text-zus-blue mb-2">
                   {formatCurrency(result.realPension)}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Kwota skorygowana o przewidywaną inflację ({formatPercent(inputData.inflationRate || 0.02)} rocznie).
+                  Kwota skorygowana o przewidywaną inflację (
+                  {formatPercent(inputData.inflationRate || 0.02)} rocznie).
                 </p>
               </div>
             </div>
 
             {/* Replacement rate */}
             <div className="card bg-gradient-to-br from-zus-gold/5 to-white dark:from-zus-gold/10 dark:to-gray-800 border-2 border-zus-gold">
-              <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-4">Stopa zastąpienia</h3>
+              <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-4">
+                Stopa zastąpienia
+              </h3>
               <div className="flex items-center gap-4 mb-4">
                 <p className="text-5xl font-bold text-zus-gold">
                   {formatPercent(result.replacementRate)}
                 </p>
                 <p className="text-gray-700 dark:text-gray-300 text-lg">
-                  Twoja emerytura będzie stanowić <span className="font-bold text-zus-gold">{formatPercent(result.replacementRate)}</span> Twojego ostatniego wynagrodzenia.
+                  Twoja emerytura będzie stanowić{" "}
+                  <span className="font-bold text-zus-gold">
+                    {formatPercent(result.replacementRate)}
+                  </span>{" "}
+                  Twojego ostatniego wynagrodzenia.
                 </p>
               </div>
             </div>
@@ -277,20 +302,48 @@ export default function Home() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={[
-                      { name: 'Twoja emerytura', value: result.nominalPension, color: 'rgb(0, 153, 63)' },
-                      { name: 'Średnia krajowa', value: result.averagePension, color: 'rgb(63, 132, 210)' },
+                      {
+                        name: "Twoja emerytura",
+                        value: result.nominalPension,
+                        color: "rgb(0, 153, 63)",
+                      },
+                      {
+                        name: "Średnia krajowa",
+                        value: result.averagePension,
+                        color: "rgb(63, 132, 210)",
+                      },
                     ]}
                     margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                    <XAxis dataKey="name" className="text-sm text-gray-600 dark:text-gray-400" />
-                    <YAxis tickFormatter={formatCurrency} className="text-sm text-gray-600 dark:text-gray-400" />
-                    <Tooltip cursor={{ fill: 'transparent' }} formatter={(value: number) => formatCurrency(value)} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="stroke-gray-200 dark:stroke-gray-700"
+                    />
+                    <XAxis
+                      dataKey="name"
+                      className="text-sm text-gray-600 dark:text-gray-400"
+                    />
+                    <YAxis
+                      tickFormatter={formatCurrency}
+                      className="text-sm text-gray-600 dark:text-gray-400"
+                    />
+                    <Tooltip
+                      cursor={{ fill: "transparent" }}
+                      formatter={(value: number) => formatCurrency(value)}
+                    />
                     <Legend />
                     <Bar dataKey="value" name="Kwota emerytury">
                       {[
-                        { name: 'Twoja emerytura', value: result.nominalPension, color: 'rgb(0, 153, 63)' },
-                        { name: 'Średnia krajowa', value: result.averagePension, color: 'rgb(63, 132, 210)' },
+                        {
+                          name: "Twoja emerytura",
+                          value: result.nominalPension,
+                          color: "rgb(0, 153, 63)",
+                        },
+                        {
+                          name: "Średnia krajowa",
+                          value: result.averagePension,
+                          color: "rgb(63, 132, 210)",
+                        },
                       ].map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
@@ -306,31 +359,69 @@ export default function Home() {
                 Co jeśli popracujesz dłużej?
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                Każdy dodatkowy rok pracy może znacząco zwiększyć Twoją przyszłą emeryturę.
+                Każdy dodatkowy rok pracy może znacząco zwiększyć Twoją przyszłą
+                emeryturę.
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full text-left table-auto">
                   <thead>
                     <tr className="bg-gray-50 dark:bg-gray-700">
-                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">Scenariusz</th>
-                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">Wiek</th>
-                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">Emerytura</th>
-                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">Wzrost</th>
+                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Scenariusz
+                      </th>
+                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Wiek
+                      </th>
+                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Emerytura
+                      </th>
+                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Wzrost
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {[
-                      { label: 'Obecnie', years: 0, pension: result.nominalPension },
-                      { label: 'Za 1 rok', years: 1, pension: result.laterRetirementScenarios.plusOneYear },
-                      { label: 'Za 2 lata', years: 2, pension: result.laterRetirementScenarios.plusTwoYears },
-                      { label: 'Za 5 lat', years: 5, pension: result.laterRetirementScenarios.plusFiveYears },
+                      {
+                        label: "Obecnie",
+                        years: 0,
+                        pension: result.nominalPension,
+                      },
+                      {
+                        label: "Za 1 rok",
+                        years: 1,
+                        pension: result.laterRetirementScenarios.plusOneYear,
+                      },
+                      {
+                        label: "Za 2 lata",
+                        years: 2,
+                        pension: result.laterRetirementScenarios.plusTwoYears,
+                      },
+                      {
+                        label: "Za 5 lat",
+                        years: 5,
+                        pension: result.laterRetirementScenarios.plusFiveYears,
+                      },
                     ].map((scenario, index) => (
-                      <tr key={index} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-100">{scenario.label}</td>
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-100">{inputData.age + scenario.years} lat</td>
-                        <td className="px-4 py-3 font-semibold text-zus-green dark:text-zus-gold">{formatCurrency(scenario.pension)}</td>
+                      <tr
+                        key={index}
+                        className="border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                      >
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-100">
+                          {scenario.label}
+                        </td>
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-100">
+                          {inputData.age + scenario.years} lat
+                        </td>
+                        <td className="px-4 py-3 font-semibold text-zus-green dark:text-zus-gold">
+                          {formatCurrency(scenario.pension)}
+                        </td>
                         <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                          {index > 0 ? `+${formatCurrency(scenario.pension - result.nominalPension)}` : '-'}
+                          {index > 0
+                            ? `+${formatCurrency(
+                                scenario.pension - result.nominalPension
+                              )}`
+                            : "-"}
                         </td>
                       </tr>
                     ))}
@@ -366,7 +457,9 @@ export default function Home() {
                           <p className="text-2xl font-bold text-zus-red">
                             {formatCurrency(result.sickLeaveImpact.difference)}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">miesięcznie</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            miesięcznie
+                          </p>
                         </div>
                         <div>
                           <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
@@ -388,8 +481,9 @@ export default function Home() {
                     </div>
 
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-4">
-                      💡 Podczas zwolnienia lekarskiego składki emerytalne są niższe
-                      (80% podstawy), co wpływa na wysokość przyszłej emerytury.
+                      💡 Podczas zwolnienia lekarskiego składki emerytalne są
+                      niższe (80% podstawy), co wpływa na wysokość przyszłej
+                      emerytury.
                     </p>
                   </div>
                 </div>
@@ -431,7 +525,8 @@ export default function Home() {
               Nie określono celu emerytalnego
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Wróć do kroku 1 i wprowadź pożądaną kwotę emerytury, aby zobaczyć personalizowane sugestie.
+              Wróć do kroku 1 i wprowadź pożądaną kwotę emerytury, aby zobaczyć
+              personalizowane sugestie.
             </p>
             <button onClick={skipStep} className="btn-primary">
               Pomiń ten krok →
