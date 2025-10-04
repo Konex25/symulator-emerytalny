@@ -453,6 +453,7 @@ export function calculateLaterRetirementBonus(
 
 /**
  * Oblicza ile lat trzeba pracować dłużej aby osiągnąć cel
+ * Używa tej samej logiki co calculateLaterRetirementBonus
  */
 export function calculateYearsNeeded(
   currentPension: number,
@@ -461,18 +462,21 @@ export function calculateYearsNeeded(
 ): number {
   if (currentPension >= targetPension) return 0;
 
-  const deficit = targetPension - currentPension;
-  const monthsOfPension = 18 * 12; // średnio 18 lat emerytury
+  // Iteracyjnie sprawdź ile lat potrzeba
+  for (let years = 1; years <= 20; years++) {
+    const newPension = calculateLaterRetirementBonus(
+      currentPension,
+      years,
+      grossSalary
+    );
+    
+    if (newPension >= targetPension) {
+      return years;
+    }
+  }
 
-  // Ile dodatkowych składek trzeba zgromadzić
-  const additionalFundsNeeded = deficit * monthsOfPension;
-
-  // Ile lat pracy to zajmie
-  const annualContribution =
-    grossSalary * 12 * ECONOMIC_INDICATORS.contributionRate; // Składka emerytalna 19,52%
-  const yearsNeeded = additionalFundsNeeded / annualContribution;
-
-  return Math.ceil(yearsNeeded); // zaokrąglamy w górę
+  // Jeśli nie osiągnięto celu w 20 lat, zwróć 20
+  return 20;
 }
 
 /**
