@@ -341,16 +341,56 @@ export default function Home() {
 
             {/* Sick leave impact */}
             {result.sickLeaveImpact && (
-              <div className="card bg-gradient-to-br from-zus-red/5 to-white dark:from-zus-red/10 dark:to-gray-800 border-2 border-zus-red">
+              <div className="card bg-gradient-to-br from-zus-red/5 to-white dark:from-zus-red/10 dark:to-gray-800 border-l-4 border-zus-red">
                 <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-4">
                   Wpływ zwolnień lekarskich
                 </h3>
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div className="flex items-center gap-2 text-xl font-semibold text-gray-800 dark:text-gray-100">
-                    <svg className="w-6 h-6 text-zus-red" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                    Potencjalna strata: <span className="text-zus-red">{formatCurrency(result.sickLeaveImpact.difference)}</span>
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl">🏥</div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                      Uwzględniliśmy średnią liczbę dni zwolnienia lekarskiego:{" "}
+                      <span className="font-semibold">
+                        {inputData.sex === "male"
+                          ? "12 dni/rok (mężczyźni)"
+                          : "16 dni/rok (kobiety)"}
+                      </span>
+                    </p>
+
+                    <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            Strata w emeryturze:
+                          </p>
+                          <p className="text-2xl font-bold text-zus-red">
+                            {formatCurrency(result.sickLeaveImpact.difference)}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">miesięcznie</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
+                            Procent zmniejszenia:
+                          </p>
+                          <p className="text-2xl font-bold text-zus-darkblue dark:text-zus-gold">
+                            {(
+                              (result.sickLeaveImpact.difference /
+                                result.nominalPension) *
+                              100
+                            ).toFixed(1)}
+                            %
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            całkowitej emerytury
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-4">
+                      💡 Podczas zwolnienia lekarskiego składki emerytalne są niższe
+                      (80% podstawy), co wpływa na wysokość przyszłej emerytury.
+                    </p>
                   </div>
                 </div>
               </div>

@@ -11,8 +11,7 @@ interface AdvancedDashboardProps {
 }
 
 export default function AdvancedDashboard({ initialInput, onRecalculate }: AdvancedDashboardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [inflationRate, setInflationRate] = useState(2);
+  const [salaryExpanded, setSalaryExpanded] = useState(false);
   const [salaryHistory, setSalaryHistory] = useState<SalaryHistory[]>([]);
 
   // Generuj dane do wykresu timeline
@@ -49,6 +48,40 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
   };
 
   const timelineData = generateTimelineData();
+
+  // Generuj dane do wykresu wynagrodzeń
+  const generateSalaryChartData = () => {
+    const data = [];
+    const startYear = initialInput.workStartYear;
+    const endYear = initialInput.workEndYear;
+    const currentYear = new Date().getFullYear();
+
+    for (let year = startYear; year <= endYear; year++) {
+      const yearsFromNow = currentYear - year;
+      let salary: number;
+      
+      // Sprawdź czy użytkownik dostosował to wynagrodzenie
+      const customEntry = salaryHistory.find((entry) => entry.year === year);
+      
+      if (customEntry) {
+        salary = customEntry.amount;
+      } else {
+        // Oblicz domyślne wynagrodzenie z 4% wzrostem
+        salary = yearsFromNow >= 0
+          ? initialInput.grossSalary / Math.pow(1.04, yearsFromNow)
+          : initialInput.grossSalary * Math.pow(1.04, Math.abs(yearsFromNow));
+      }
+
+      data.push({
+        year,
+        salary: Math.round(salary),
+      });
+    }
+
+    return data;
+  };
+
+  const salaryChartData = generateSalaryChartData();
 
   const handleRemoveSalary = (index: number) => {
     setSalaryHistory(salaryHistory.filter((_, i) => i !== index));
@@ -92,46 +125,23 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
   };
 
   return (
-    <div className="card bg-gradient-to-br from-zus-blue/5 to-white">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition-colors"
-        aria-expanded={isExpanded}
-        aria-controls="advanced-dashboard-content"
-      >
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="card bg-gradient-to-br from-zus-blue/5 to-white dark:from-zus-blue/10 dark:to-gray-800 border-l-4 border-zus-blue">
         <div className="flex items-center gap-3">
           <span className="text-3xl">📊</span>
-          <div className="text-left">
-            <h3 className="text-2xl font-bold text-zus-darkblue">
+          <div>
+            <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white">
               Dashboard zaawansowany
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Dostosuj parametry i zobacz szczegółowe prognozy
             </p>
           </div>
         </div>
-        <svg
-          className={`w-6 h-6 text-zus-green transition-transform ${
-            isExpanded ? "rotate-180" : ""
-          }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
+      </div>
 
-      {isExpanded && (
-        <div
-          id="advanced-dashboard-content"
-          className="space-y-8 mt-6 px-4 pb-4"
-        >
+      <div className="space-y-6">
           {/* Wykres timeline */}
           <section>
             <h4 className="text-xl font-bold text-zus-darkblue mb-4">
@@ -186,53 +196,98 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
             </ResponsiveContainer>
           </section>
 
-          {/* Slider inflacji */}
-          <section className="bg-white rounded-lg p-6 border border-gray-200">
-            <h4 className="text-xl font-bold text-zus-darkblue mb-4">
-              Przewidywana inflacja
-            </h4>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="0.1"
-                  value={inflationRate}
-                  onChange={(e) => setInflationRate(parseFloat(e.target.value))}
-                  className="flex-1 h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-zus-green"
-                  aria-label="Stopa inflacji"
-                />
-                <div className="text-center min-w-[80px]">
-                  <p className="text-3xl font-bold text-zus-green">
-                    {inflationRate.toFixed(1)}%
-                  </p>
-                </div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-600">
-                <span>0%</span>
-                <span>2% (domyślnie)</span>
-                <span>5%</span>
-                <span>10%</span>
-              </div>
-              <p className="text-sm text-gray-600">
-                Inflacja wpływa na realną wartość Twojej przyszłej emerytury.
-                Wyższa inflacja oznacza niższą siłę nabywczą.
-              </p>
-            </div>
-          </section>
-
-          {/* Historia wynagrodzeń */}
-          <section className="bg-white rounded-lg p-6 border border-gray-200">
-            <h4 className="text-xl font-bold text-zus-darkblue mb-4">
+          {/* Wynagrodzenia roczne z wykresem */}
+          <section className="card bg-white dark:bg-gray-800">
+            <h4 className="text-xl font-bold text-zus-darkblue dark:text-white mb-4">
               Wynagrodzenia roczne
             </h4>
-            <p className="text-sm text-gray-600 mb-4">
-              Symulator automatycznie oblicza wynagrodzenia z 4% wzrostem
-              rocznym. Możesz dostosować konkretne lata poniżej.
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Poniżej przedstawiamy prognozę Twoich wynagrodzeń z 4% rocznym wzrostem.
+              Możesz edytować poszczególne lata w szczegółach poniżej.
             </p>
 
-            <div className="space-y-4">
+            {/* Wykres wynagrodzeń */}
+            <div className="mb-6">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={salaryChartData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="year"
+                    tick={{ fill: "#374151", fontSize: 12 }}
+                    label={{
+                      value: "Rok",
+                      position: "insideBottom",
+                      offset: -5,
+                      style: { fill: "#6b7280" },
+                    }}
+                  />
+                  <YAxis
+                    tick={{ fill: "#374151", fontSize: 12 }}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    label={{
+                      value: "Wynagrodzenie (PLN)",
+                      angle: -90,
+                      position: "insideLeft",
+                      style: { fill: "#6b7280" },
+                    }}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => formatCurrency(value)}
+                    labelFormatter={(label) => `Rok ${label}`}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="salary"
+                    name="Wynagrodzenie"
+                    stroke="rgb(209, 166, 63)"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={{ fill: "rgb(209, 166, 63)", r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Accordion do edycji szczegółów */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <button
+                onClick={() => setSalaryExpanded(!salaryExpanded)}
+                className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                aria-expanded={salaryExpanded}
+                aria-controls="salary-details"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📝</span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    Edytuj poszczególne wynagrodzenia per rok
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    ({salaryHistory.length > 0 ? `${salaryHistory.length} dostosowanych` : 'wszystkie domyślne'})
+                  </span>
+                </div>
+                <svg
+                  className={`w-5 h-5 text-gray-400 transition-transform ${
+                    salaryExpanded ? 'rotate-180' : ''
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+
+              {salaryExpanded && (
+                <div id="salary-details" className="mt-4 space-y-4">
               {/* Automatyczne pola dla każdego roku */}
               <div className="grid gap-3">
                 {Array.from(
@@ -338,35 +393,37 @@ export default function AdvancedDashboard({ initialInput, onRecalculate }: Advan
                 )}
               </div>
 
-              {/* Informacja o domyślnych wartościach */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800">
-                  <strong>💡 Jak to działa:</strong> Domyślne wartości są
-                  obliczane z 4% rocznym wzrostem wynagrodzeń. Jeśli dostosujesz
-                  konkretny rok, symulator użyje Twojej wartości zamiast
-                  obliczonej.
-                </p>
-              </div>
+                  {/* Informacja o domyślnych wartościach */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                    <p className="text-sm text-blue-800 dark:text-blue-300">
+                      <strong>💡 Jak to działa:</strong> Domyślne wartości są
+                      obliczane z 4% rocznym wzrostem wynagrodzeń. Jeśli dostosujesz
+                      konkretny rok, symulator użyje Twojej wartości zamiast
+                      obliczonej.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
           {/* Przycisk przelicz ponownie */}
-          <div className="flex justify-center pt-4">
-            <button
-              onClick={handleRecalculate}
-              className="btn-primary text-lg px-8 py-4"
-              disabled={salaryHistory.length === 0 && inflationRate === 2}
-            >
-              🔄 Przelicz ponownie z nowymi danymi
-            </button>
-          </div>
-
-          <p className="text-xs text-gray-500 text-center">
-            Uwaga: Zaawansowane przeliczenia uwzględnią podane przez Ciebie
-            szczegółowe dane.
-          </p>
+          {salaryHistory.length > 0 && (
+            <div className="flex flex-col items-center gap-3 pt-4">
+              <button
+                onClick={handleRecalculate}
+                className="btn-primary text-lg px-8 py-4"
+              >
+                🔄 Przelicz ponownie z nowymi danymi
+              </button>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                Uwaga: Zaawansowane przeliczenia uwzględnią podane przez Ciebie
+                szczegółowe dane.
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
