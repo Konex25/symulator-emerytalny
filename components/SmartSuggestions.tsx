@@ -78,23 +78,23 @@ export default function SmartSuggestions({
             Do osiągnięcia celu potrzebujesz:
           </span>
           <span className="text-xl font-bold text-orange-600 dark:text-orange-400">
-            +{pathsData.gap.toLocaleString('pl-PL')} PLN/mies
+            +{pathsData?.gap?.toLocaleString("pl-PL")} PLN/mies
           </span>
         </div>
       </div>
 
       {/* Suggestions */}
       <div className="space-y-4">
-        {pathsData.suggestions.map((suggestion, index) => {
+        {pathsData?.suggestions?.map((suggestion, index) => {
           const isExpanded = expandedId === suggestion.id;
-          
+
           return (
             <div
               key={suggestion.id}
               className={`border-2 rounded-lg transition-all duration-300 ${
                 isExpanded
-                  ? 'border-zus-green dark:border-zus-gold shadow-lg'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                  ? "border-zus-green dark:border-zus-gold shadow-lg"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
               }`}
             >
               {/* Header */}
@@ -104,7 +104,11 @@ export default function SmartSuggestions({
               >
                 <div className="flex items-center gap-4 flex-1">
                   <div className="text-3xl">
-                    {strategyEmoji[suggestion.strategy as keyof typeof strategyEmoji]}
+                    {
+                      strategyEmoji[
+                        suggestion.strategy as keyof typeof strategyEmoji
+                      ]
+                    }
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -112,7 +116,11 @@ export default function SmartSuggestions({
                         #{index + 1} {suggestion.title}
                       </h3>
                       <span className="text-sm">
-                        {effortEmoji[suggestion.effort as keyof typeof effortEmoji]}
+                        {
+                          effortEmoji[
+                            suggestion.effort as keyof typeof effortEmoji
+                          ]
+                        }
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -123,7 +131,7 @@ export default function SmartSuggestions({
                 <div className="ml-4">
                   <svg
                     className={`w-6 h-6 text-gray-400 transition-transform duration-300 ${
-                      isExpanded ? 'rotate-180' : ''
+                      isExpanded ? "rotate-180" : ""
                     }`}
                     fill="none"
                     stroke="currentColor"
@@ -148,7 +156,7 @@ export default function SmartSuggestions({
                       📊 Szczegóły planu:
                     </h4>
                     <div className="space-y-1 text-sm text-blue-800 dark:text-blue-300">
-                      {suggestion.strategy === 'extra_income' && (
+                      {suggestion.strategy === "extra_income" && (
                         <>
                           <div className="flex justify-between">
                             <span>Dodatkowy dochód miesięczny:</span>
@@ -158,18 +166,23 @@ export default function SmartSuggestions({
                           </div>
                           <div className="flex justify-between">
                             <span>Przez ile czasu:</span>
-                            <span className="font-bold">{suggestion.details.duration} lat</span>
+                            <span className="font-bold">
+                              {suggestion.details.duration} lat
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span>Łącznie zarobisz:</span>
                             <span className="font-bold">
-                              {suggestion.details.totalEarned.toLocaleString('pl-PL')} PLN
+                              {suggestion.details.totalEarned?.toLocaleString(
+                                "pl-PL"
+                              )}{" "}
+                              PLN
                             </span>
                           </div>
                         </>
                       )}
-                      
-                      {suggestion.strategy === 'work_longer' && (
+
+                      {suggestion.strategy === "work_longer" && (
                         <>
                           <div className="flex justify-between">
                             <span>Dodatkowe lata pracy:</span>
@@ -179,12 +192,14 @@ export default function SmartSuggestions({
                           </div>
                           <div className="flex justify-between">
                             <span>Wiek przejścia na emeryturę:</span>
-                            <span className="font-bold">{suggestion.details.retirementAge} lat</span>
+                            <span className="font-bold">
+                              {suggestion.details.retirementAge} lat
+                            </span>
                           </div>
                         </>
                       )}
-                      
-                      {suggestion.strategy === 'combined' && (
+
+                      {suggestion.strategy === "combined" && (
                         <>
                           <div className="flex justify-between">
                             <span>Dodatkowy dochód:</span>
@@ -194,7 +209,9 @@ export default function SmartSuggestions({
                           </div>
                           <div className="flex justify-between">
                             <span>Przez:</span>
-                            <span className="font-bold">{suggestion.details.extraDuration} lat</span>
+                            <span className="font-bold">
+                              {suggestion.details.extraDuration} lat
+                            </span>
                           </div>
                           <div className="flex justify-between">
                             <span>+ Praca dłużej o:</span>
@@ -204,8 +221,8 @@ export default function SmartSuggestions({
                           </div>
                         </>
                       )}
-                      
-                      {suggestion.strategy === 'investment' && (
+
+                      {suggestion.strategy === "investment" && (
                         <>
                           <div className="flex justify-between">
                             <span>Miesięczna wpłata:</span>
@@ -216,19 +233,25 @@ export default function SmartSuggestions({
                           <div className="flex justify-between">
                             <span>Łącznie zainwestujesz:</span>
                             <span className="font-bold">
-                              {suggestion.details.totalInvested.toLocaleString('pl-PL')} PLN
+                              {suggestion.details.totalInvested?.toLocaleString(
+                                "pl-PL"
+                              )}{" "}
+                              PLN
                             </span>
                           </div>
                           <div className="flex justify-between">
                             <span>Oczekiwany zwrot:</span>
                             <span className="font-bold">
-                              {suggestion.details.expectedReturn.toLocaleString('pl-PL')} PLN/mies
+                              {suggestion.details.expectedReturn?.toLocaleString(
+                                "pl-PL"
+                              )}{" "}
+                              PLN/mies
                             </span>
                           </div>
                         </>
                       )}
-                      
-                      {suggestion.id === 'realistic' && (
+
+                      {suggestion.id === "realistic" && (
                         <>
                           <div className="flex justify-between">
                             <span>Oryginalny cel:</span>
@@ -250,7 +273,9 @@ export default function SmartSuggestions({
                           </div>
                           <div className="flex justify-between">
                             <span>Przez:</span>
-                            <span className="font-bold">{suggestion.details.extraDuration} lat</span>
+                            <span className="font-bold">
+                              {suggestion.details.extraDuration} lat
+                            </span>
                           </div>
                         </>
                       )}
@@ -266,7 +291,10 @@ export default function SmartSuggestions({
                       </h4>
                       <ul className="space-y-1">
                         {suggestion.pros.map((pro, i) => (
-                          <li key={i} className="text-xs text-green-800 dark:text-green-300">
+                          <li
+                            key={i}
+                            className="text-xs text-green-800 dark:text-green-300"
+                          >
                             • {pro}
                           </li>
                         ))}
@@ -280,7 +308,10 @@ export default function SmartSuggestions({
                       </h4>
                       <ul className="space-y-1">
                         {suggestion.cons.map((con, i) => (
-                          <li key={i} className="text-xs text-orange-800 dark:text-orange-300">
+                          <li
+                            key={i}
+                            className="text-xs text-orange-800 dark:text-orange-300"
+                          >
                             • {con}
                           </li>
                         ))}
@@ -304,8 +335,8 @@ export default function SmartSuggestions({
       {/* Info footer */}
       <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
-          💡 <strong>Wskazówka:</strong> Możesz łączyć różne strategie! Najlepsze 
-          rezultaty osiągniesz stosując 2-3 podejścia jednocześnie.
+          💡 <strong>Wskazówka:</strong> Możesz łączyć różne strategie!
+          Najlepsze rezultaty osiągniesz stosując 2-3 podejścia jednocześnie.
         </p>
       </div>
     </div>
