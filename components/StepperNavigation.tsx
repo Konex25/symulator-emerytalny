@@ -1,5 +1,7 @@
 'use client';
 
+import React from "react";
+
 export interface Step {
   id: number;
   title: string;
@@ -35,51 +37,57 @@ export default function StepperNavigation({
     <div className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="container mx-auto px-4 py-4">
         {/* Desktop stepper */}
-        <div className="hidden md:flex items-center justify-center">
+        <div className="hidden md:flex items-center justify-between">
           {steps.map((step, index) => {
             const status = getStepStatus(step.id);
-            const isClickable = canNavigate && (status === 'completed' || status === 'current' || status === 'available');
+            const isClickable =
+              canNavigate &&
+              (status === "completed" ||
+                status === "current" ||
+                status === "available");
 
             return (
-              <div key={step.id} className="flex items-center flex-1">
+              <React.Fragment key={step.id}>
                 {/* Step circle */}
                 <button
                   onClick={() => isClickable && onStepClick(step.id)}
                   disabled={!isClickable}
                   className={`group relative flex flex-col items-center ${
-                    isClickable ? 'cursor-pointer' : 'cursor-not-allowed'
+                    isClickable ? "cursor-pointer" : "cursor-not-allowed"
                   }`}
                 >
                   {/* Circle */}
                   <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold transition-all ${
-                      status === 'completed'
-                        ? 'bg-zus-green text-white shadow-lg'
-                        : status === 'current'
-                        ? 'bg-zus-blue text-white shadow-lg ring-4 ring-blue-200 dark:ring-blue-800'
-                        : status === 'available'
-                        ? 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-400 dark:hover:bg-gray-600'
-                        : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600'
+                      status === "completed"
+                        ? "bg-zus-green text-white shadow-lg"
+                        : status === "current"
+                        ? "bg-zus-blue text-white shadow-lg ring-4 ring-blue-200 dark:ring-blue-800"
+                        : status === "available"
+                        ? "bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-400 dark:hover:bg-gray-600"
+                        : "bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600"
                     }`}
                   >
-                    {status === 'completed' ? '✓' : step.icon}
+                    {status === "completed" ? "✓" : step.icon}
                   </div>
 
                   {/* Label */}
                   <div className="mt-2 text-center">
                     <div
                       className={`text-xs font-medium ${
-                        status === 'current'
-                          ? 'text-zus-blue dark:text-zus-gold'
-                          : status === 'completed'
-                          ? 'text-zus-green'
-                          : 'text-gray-500 dark:text-gray-400'
+                        status === "current"
+                          ? "text-zus-blue dark:text-zus-gold"
+                          : status === "completed"
+                          ? "text-zus-green"
+                          : "text-gray-500 dark:text-gray-400"
                       }`}
                     >
                       {step.shortTitle}
                     </div>
                     {step.optional && (
-                      <div className="text-[10px] text-gray-400">(opcjonalnie)</div>
+                      <div className="text-[10px] text-gray-400">
+                        (opcjonalnie)
+                      </div>
                     )}
                   </div>
 
@@ -93,19 +101,19 @@ export default function StepperNavigation({
                   )}
                 </button>
 
-                {/* Connector line */}
+                {/* Connector line - between steps */}
                 {index < steps.length - 1 && (
-                  <div className="flex-1 h-1 mx-2">
+                  <div className="flex-1 h-1 mx-4">
                     <div
                       className={`h-full rounded transition-colors ${
                         completedSteps.includes(step.id)
-                          ? 'bg-zus-green'
-                          : 'bg-gray-200 dark:bg-gray-700'
+                          ? "bg-zus-green"
+                          : "bg-gray-200 dark:bg-gray-700"
                       }`}
                     />
                   </div>
                 )}
-              </div>
+              </React.Fragment>
             );
           })}
         </div>
@@ -117,7 +125,8 @@ export default function StepperNavigation({
               Krok {currentStep} z {steps.length}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {Math.round((completedSteps.length / steps.length) * 100)}% ukończone
+              {Math.round((completedSteps.length / steps.length) * 100)}%
+              ukończone
             </div>
           </div>
 
