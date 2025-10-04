@@ -18,7 +18,7 @@ export default function Home() {
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleDesiredPensionChange = (amount: number) => {
+  const handleDesiredPensionChange = (amount: number | undefined) => {
     setDesiredPension(amount);
   };
 
@@ -36,9 +36,10 @@ export default function Home() {
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto space-y-16">
         {/* Landing Screen */}
-        <LandingScreen 
+        <LandingScreen
           onStartSimulation={handleStartSimulation}
           onDesiredPensionChange={handleDesiredPensionChange}
+          desiredPension={desiredPension}
         />
 
         {/* Separator */}
@@ -54,11 +55,12 @@ export default function Home() {
               Wprowadź swoje dane, aby obliczyć prognozę emerytury
             </p>
           </div>
-          
+
           <div className="card">
-            <SimulationForm 
+            <SimulationForm
               onSuccess={handleSuccess}
               desiredPension={desiredPension}
+              onDesiredPensionChange={handleDesiredPensionChange}
             />
           </div>
         </div>

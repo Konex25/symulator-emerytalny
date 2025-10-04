@@ -8,14 +8,15 @@ import type { FunFact } from "@/types";
 
 interface LandingScreenProps {
   onStartSimulation: () => void;
-  onDesiredPensionChange?: (amount: number) => void;
+  onDesiredPensionChange?: (amount: number | undefined) => void;
+  desiredPension?: number;
 }
 
 export default function LandingScreen({
   onStartSimulation,
   onDesiredPensionChange,
+  desiredPension,
 }: LandingScreenProps) {
-  const [desiredPension, setDesiredPension] = useState<string>("");
   const [funFact, setFunFact] = useState<FunFact | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -38,10 +39,8 @@ export default function LandingScreen({
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value;
-    setDesiredPension(value);
-
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue > 0 && onDesiredPensionChange) {
+    const numValue = value === "" ? undefined : parseFloat(value);
+    if (onDesiredPensionChange) {
       onDesiredPensionChange(numValue);
     }
   };
@@ -102,7 +101,7 @@ export default function LandingScreen({
             <input
               id="desired-pension"
               type="number"
-              value={desiredPension}
+              value={desiredPension || ""}
               onChange={handleDesiredPensionChange}
               placeholder="np. 5000"
               className="input-field text-center text-2xl font-semibold pr-16"

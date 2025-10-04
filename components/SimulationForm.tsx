@@ -9,12 +9,17 @@ import type { SimulationResult, SimulationInput } from '@/types';
 interface SimulationFormProps {
   onSuccess?: (result: SimulationResult, input: SimulationInput) => void;
   desiredPension?: number;
+  onDesiredPensionChange?: (amount: number | undefined) => void;
 }
 
-export default function SimulationForm({ onSuccess, desiredPension }: SimulationFormProps) {
+export default function SimulationForm({
+  onSuccess,
+  desiredPension,
+  onDesiredPensionChange,
+}: SimulationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const {
     register,
     handleSubmit,
@@ -23,7 +28,7 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
     formState: { errors, isValid },
   } = useForm<SimulationFormData>({
     resolver: zodResolver(simulationFormSchema),
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
       includeSickLeave: false,
       desiredPension: desiredPension || undefined,
@@ -31,15 +36,22 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
   });
 
   // Obserwuj zmiany wieku i płci aby automatycznie ustawić rok zakończenia pracy
-  const watchAge = watch('age');
-  const watchSex = watch('sex');
+  const watchAge = watch("age");
+  const watchSex = watch("sex");
 
   useEffect(() => {
     if (watchAge && watchSex) {
       const defaultEndYear = calculateDefaultWorkEndYear(watchAge, watchSex);
-      setValue('workEndYear', defaultEndYear);
+      setValue("workEndYear", defaultEndYear);
     }
   }, [watchAge, watchSex, setValue]);
+
+  // Synchronizuj desiredPension z prop
+  useEffect(() => {
+    if (desiredPension !== undefined) {
+      setValue("desiredPension", desiredPension);
+    }
+  }, [desiredPension, setValue]);
 
   const onSubmit = async (data: SimulationFormData) => {
     setIsSubmitting(true);
@@ -420,6 +432,13 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
             {...register("desiredPension", {
               setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
+            onChange={(e) => {
+              const value = e.target.value;
+              const numValue = value === "" ? undefined : parseFloat(value);
+              if (onDesiredPensionChange) {
+                onDesiredPensionChange(numValue);
+              }
+            }}
             className={`input-field ${
               errors.desiredPension ? "border-zus-red" : ""
             }`}
