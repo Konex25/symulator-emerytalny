@@ -32,6 +32,22 @@ export default function Home() {
     }, 100);
   };
 
+  const handleRecalculate = (
+    newResult: SimulationResult,
+    newInput: SimulationInput
+  ) => {
+    setResult(newResult);
+    setInputData(newInput);
+
+    // Smooth scroll do wyników
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto space-y-16">
@@ -70,7 +86,11 @@ export default function Home() {
           <>
             <div className="border-t-2 border-zus-gray"></div>
             <div ref={resultsRef} className="scroll-mt-20">
-              <ResultsScreen result={result} input={inputData} />
+              <ResultsScreen
+                result={result}
+                input={inputData}
+                onRecalculate={handleRecalculate}
+              />
             </div>
           </>
         )}

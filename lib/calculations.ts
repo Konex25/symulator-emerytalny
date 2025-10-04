@@ -92,7 +92,8 @@ export function calculateActualPension(
     currentYear,
     retirementYear,
     valorizationData,
-    MONTHLY_CONTRIBUTIONS.zusAccountMonthly
+    MONTHLY_CONTRIBUTIONS.zusAccountMonthly,
+    input.yearlySalaries
   );
   zusAccountValue += calculatedContributions;
 
@@ -204,21 +205,30 @@ function calculateAccumulatedContributions(
   currentYear: number,
   retirementYear: number,
   valorizationData: ValorizationParams[],
-  monthlyRate: number
+  monthlyRate: number,
+  yearlySalaries?: { [year: number]: number }
 ): number {
   let totalAccumulated = 0;
   const actualYearsWorked = Math.min(yearsWorked, currentYear - workStartYear);
 
-  // Calculate historical contributions with wage growth
+  // Calculate historical contributions with wage growth or provided yearly salaries
   for (let i = 0; i < actualYearsWorked; i++) {
-    const yearsFromNow = actualYearsWorked - i - 1;
-    const historicalSalary =
-      grossSalary /
-      Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsFromNow);
-    const yearlyContribution = historicalSalary * 12 * monthlyRate;
+    const contributionYear = workStartYear + i;
+
+    // Use provided yearly salary or calculate with 4% growth
+    let yearlySalary: number;
+    if (yearlySalaries && yearlySalaries[contributionYear]) {
+      yearlySalary = yearlySalaries[contributionYear];
+    } else {
+      const yearsFromNow = actualYearsWorked - i - 1;
+      yearlySalary =
+        grossSalary /
+        Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsFromNow);
+    }
+
+    const yearlyContribution = yearlySalary * 12 * monthlyRate;
 
     // Apply valorization only from contribution year to current year (31 stycznia)
-    const contributionYear = workStartYear + i;
     const valorizedContribution = applyAnnualValorization(
       yearlyContribution,
       valorizationData,
@@ -234,8 +244,17 @@ function calculateAccumulatedContributions(
   if (retirementYear > currentYear) {
     const futureYears = retirementYear - currentYear;
     for (let i = 0; i < futureYears; i++) {
-      const futureSalary =
-        grossSalary * Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, i);
+      const futureYear = currentYear + i;
+
+      // Use provided yearly salary or calculate with 4% growth
+      let futureSalary: number;
+      if (yearlySalaries && yearlySalaries[futureYear]) {
+        futureSalary = yearlySalaries[futureYear];
+      } else {
+        futureSalary =
+          grossSalary * Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, i);
+      }
+
       const yearlyContribution = futureSalary * 12 * monthlyRate;
 
       // Przyszłe składki nie są waloryzowane
@@ -257,7 +276,8 @@ export function calculateNominalPension(
   workStartYear: number,
   workEndYear: number,
   zusAccount?: number,
-  zusSubAccount?: number
+  zusSubAccount?: number,
+  yearlySalaries?: { [year: number]: number }
 ): number {
   const currentYear = new Date().getFullYear();
   const retirementAge = RETIREMENT_AGE[sex];
@@ -275,7 +295,8 @@ export function calculateNominalPension(
       grossSalary,
       yearsWorked,
       workStartYear,
-      currentYear
+      currentYear,
+      yearlySalaries
     );
   }
 
@@ -284,7 +305,8 @@ export function calculateNominalPension(
     const futureYears = workEndYear - currentYear;
     const futureContributions = calculateFutureContributions(
       grossSalary,
-      futureYears
+      futureYears,
+      yearlySalaries
     );
     totalFunds += futureContributions;
   }
@@ -309,20 +331,30 @@ function estimateZUSAccount(
   currentSalary: number,
   yearsWorked: number,
   startYear: number,
-  currentYear: number
+  currentYear: number,
+  yearlySalaries?: { [year: number]: number }
 ): number {
   let totalContributions = 0;
   const actualYearsWorked = Math.min(yearsWorked, currentYear - startYear);
 
-  // Indeksacja wsteczna - zakładamy że wynagrodzenie rosło o 4% rocznie
+  // Indeksacja wsteczna - zakładamy że wynagrodzenie rosło o 4% rocznie lub używamy podanych wartości
   for (let i = 0; i < actualYearsWorked; i++) {
-    const yearsFromNow = actualYearsWorked - i - 1;
-    const historicalSalary =
-      currentSalary /
-      Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsFromNow);
+    const contributionYear = startYear + i;
+
+    // Use provided yearly salary or calculate with 4% growth
+    let yearlySalary: number;
+    if (yearlySalaries && yearlySalaries[contributionYear]) {
+      yearlySalary = yearlySalaries[contributionYear];
+    } else {
+      const yearsFromNow = actualYearsWorked - i - 1;
+      yearlySalary =
+        currentSalary /
+        Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsFromNow);
+    }
+
     // Składka emerytalna 19,52% z wynagrodzenia brutto
     const yearlyContribution =
-      historicalSalary * 12 * ECONOMIC_INDICATORS.contributionRate;
+      yearlySalary * 12 * ECONOMIC_INDICATORS.contributionRate;
     totalContributions += yearlyContribution;
   }
 
@@ -335,14 +367,24 @@ function estimateZUSAccount(
  */
 function calculateFutureContributions(
   grossSalary: number,
-  futureYears: number
+  futureYears: number,
+  yearlySalaries?: { [year: number]: number }
 ): number {
   let totalContributions = 0;
 
   for (let i = 0; i < futureYears; i++) {
-    // Zakładamy wzrost wynagrodzenia o 4% rocznie
-    const futureSalary =
-      grossSalary * Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, i);
+    const futureYear = new Date().getFullYear() + i;
+
+    // Use provided yearly salary or calculate with 4% growth
+    let futureSalary: number;
+    if (yearlySalaries && yearlySalaries[futureYear]) {
+      futureSalary = yearlySalaries[futureYear];
+    } else {
+      // Zakładamy wzrost wynagrodzenia o 4% rocznie
+      futureSalary =
+        grossSalary * Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, i);
+    }
+
     // Składka emerytalna 19,52% z wynagrodzenia brutto
     const yearlyContribution =
       futureSalary * 12 * ECONOMIC_INDICATORS.contributionRate;

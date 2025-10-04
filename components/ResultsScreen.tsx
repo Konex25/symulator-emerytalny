@@ -14,9 +14,17 @@ import { RETIREMENT_AGE } from '@/lib/constants';
 interface ResultsScreenProps {
   result: SimulationResult;
   input: SimulationInput;
+  onRecalculate?: (
+    newResult: SimulationResult,
+    newInput: SimulationInput
+  ) => void;
 }
 
-export default function ResultsScreen({ result, input }: ResultsScreenProps) {
+export default function ResultsScreen({
+  result,
+  input,
+  onRecalculate,
+}: ResultsScreenProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [postalCode, setPostalCode] = useState("");
   const [postalCodeError, setPostalCodeError] = useState("");
@@ -472,9 +480,35 @@ export default function ResultsScreen({ result, input }: ResultsScreenProps) {
       {/* Dashboard zaawansowany */}
       <AdvancedDashboard
         initialInput={input}
-        onRecalculate={(updatedInput) => {
-          console.log("Przeliczanie z nowymi danymi:", updatedInput);
-          // Tutaj możesz dodać logikę wywołania API z nowymi parametrami
+        onRecalculate={async (updatedInput) => {
+          if (onRecalculate) {
+            try {
+              // Wykonaj API call z nowymi danymi
+              const response = await fetch("/api/calculate-pension", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updatedInput),
+              });
+
+              if (!response.ok) {
+                throw new Error("Błąd podczas przeliczania");
+              }
+
+              const data = await response.json();
+
+              if (data.success) {
+                // Wywołaj callback z nowymi wynikami
+                onRecalculate(data.result, data.input);
+              } else {
+                throw new Error(data.error || "Nieznany błąd");
+              }
+            } catch (error) {
+              console.error("Błąd podczas przeliczania:", error);
+              alert("Wystąpił błąd podczas przeliczania. Spróbuj ponownie.");
+            }
+          }
         }}
       />
 

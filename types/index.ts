@@ -15,6 +15,7 @@ export interface SimulationInput {
   ofeAccount?: number; // Środki zgromadzone na rachunku OFE
   includeSickLeave: boolean;
   desiredPension?: number;
+  yearlySalaries?: { [year: number]: number }; // Szczegółowe wynagrodzenia roczne
 }
 
 // Wyniki symulacji

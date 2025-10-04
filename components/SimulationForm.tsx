@@ -208,6 +208,10 @@ export default function SimulationForm({
           )}
           <p className="text-xs text-gray-600 mt-1">
             Minimalne wynagrodzenie: 4666 PLN
+            <br />
+            <span className="text-blue-600 font-medium">
+              💡 Symulator zakłada 4% roczny wzrost wynagrodzeń
+            </span>
           </p>
         </div>
 

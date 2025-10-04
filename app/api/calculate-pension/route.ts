@@ -135,6 +135,7 @@ export async function POST(request: NextRequest) {
       desiredPension: body.desiredPension
         ? parseFloat(body.desiredPension)
         : undefined,
+      yearlySalaries: body.yearlySalaries || undefined,
     };
 
     // Load CSV data on server side
@@ -182,6 +183,7 @@ export async function GET() {
       "ofeAccount",
       "includeSickLeave",
       "desiredPension",
+      "yearlySalaries",
     ],
     example: {
       age: 30,
