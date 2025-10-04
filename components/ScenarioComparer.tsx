@@ -6,22 +6,21 @@ import { useState } from 'react';
 interface ScenarioComparerProps {
   currentPension: number;
   currentSalary: number;
-  yearsUntilRetirement: number;
   targetPension?: number;
 }
 
 export default function ScenarioComparer({
   currentPension,
   currentSalary,
-  yearsUntilRetirement,
   targetPension,
 }: ScenarioComparerProps) {
   const [activeTab, setActiveTab] = useState<"work" | "income">("work");
 
+  // Najpierw obliczamy scenariusze pracy dłużej (używamy obecnego wynagrodzenia)
   const workScenarios = calculateWorkLongerScenarios(
     currentPension,
     currentSalary,
-    yearsUntilRetirement,
+    0, // yearsUntilRetirement = 0 (używamy obecnego wynagrodzenia)
     targetPension
   );
 

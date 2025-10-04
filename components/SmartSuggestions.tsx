@@ -318,13 +318,6 @@ export default function SmartSuggestions({
                       </ul>
                     </div>
                   </div>
-
-                  {/* CTA */}
-                  <div className="text-center pt-2">
-                    <button className="btn-primary text-sm py-2 px-6">
-                      Zapisz tę strategię
-                    </button>
-                  </div>
                 </div>
               )}
             </div>

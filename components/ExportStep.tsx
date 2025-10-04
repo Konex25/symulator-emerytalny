@@ -48,6 +48,32 @@ export default function ExportStep({ input, result, onNewSimulation }: ExportSte
 
   return (
     <div className="space-y-6">
+      {/* Quick stats summary - NA GÓRZE */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="card bg-white dark:bg-gray-800 text-center">
+          <div className="text-3xl mb-2">💰</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Twoja emerytura</div>
+          <div className="text-xl font-bold text-zus-green dark:text-zus-gold">
+            {result.nominalPension.toLocaleString('pl-PL')} PLN
+          </div>
+        </div>
+
+        <div className="card bg-white dark:bg-gray-800 text-center">
+          <div className="text-3xl mb-2">📊</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Stopa zastąpienia</div>
+          <div className="text-xl font-bold text-zus-blue dark:text-zus-gold">
+            {(result.replacementRate * 100).toFixed(0)}%
+          </div>
+        </div>
+
+        <div className="card bg-white dark:bg-gray-800 text-center">
+          <div className="text-3xl mb-2">📅</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Rok emerytury</div>
+          <div className="text-xl font-bold text-zus-darkblue dark:text-white">
+            {result.retirementYear}
+          </div>
+        </div>
+      </div>
       {/* Success message if PDF generated */}
       {pdfGenerated && (
         <div className="card bg-gradient-to-r from-green-500 to-green-600 text-white border-0 shadow-xl">
@@ -133,21 +159,6 @@ export default function ExportStep({ input, result, onNewSimulation }: ExportSte
         </div>
       </div>
 
-      {/* Auto-save info */}
-      <div className="card bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 border-l-4 border-blue-500">
-        <div className="flex items-center gap-4">
-          <div className="text-4xl">💾</div>
-          <div>
-            <h3 className="text-xl font-bold text-zus-darkblue dark:text-white mb-1">
-              Dane zapisane automatycznie
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Twoja symulacja została zapisana lokalnie. Możesz wrócić do niej później w panelu administratora.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Thank you card */}
       <div className="card bg-gradient-to-r from-zus-green to-zus-blue text-white border-0 shadow-xl">
         <div className="text-center">
@@ -172,33 +183,6 @@ export default function ExportStep({ input, result, onNewSimulation }: ExportSte
             >
               🌐 Odwiedź ZUS.pl
             </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick stats summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card bg-white dark:bg-gray-800 text-center">
-          <div className="text-3xl mb-2">💰</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Twoja emerytura</div>
-          <div className="text-xl font-bold text-zus-green dark:text-zus-gold">
-            {result.nominalPension.toLocaleString('pl-PL')} PLN
-          </div>
-        </div>
-
-        <div className="card bg-white dark:bg-gray-800 text-center">
-          <div className="text-3xl mb-2">📊</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Stopa zastąpienia</div>
-          <div className="text-xl font-bold text-zus-blue dark:text-zus-gold">
-            {(result.replacementRate * 100).toFixed(0)}%
-          </div>
-        </div>
-
-        <div className="card bg-white dark:bg-gray-800 text-center">
-          <div className="text-3xl mb-2">📅</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Rok emerytury</div>
-          <div className="text-xl font-bold text-zus-darkblue dark:text-white">
-            {result.retirementYear}
           </div>
         </div>
       </div>
