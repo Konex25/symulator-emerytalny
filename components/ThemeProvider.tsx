@@ -22,11 +22,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTheme(stored);
       document.documentElement.classList.toggle('dark', stored === 'dark');
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = prefersDark ? 'dark' : 'light';
-      setTheme(initialTheme);
-      document.documentElement.classList.toggle('dark', prefersDark);
+      // Default to light mode (ignore system preference)
+      setTheme('light');
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 
