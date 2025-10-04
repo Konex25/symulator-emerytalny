@@ -53,6 +53,27 @@ export default function SimulationForm({
     }
   }, [desiredPension, setValue]);
 
+  // Funkcja wypełniająca formularz przykładowymi danymi
+  const fillDemoData = () => {
+    const currentYear = new Date().getFullYear();
+    setValue("age", 35);
+    setValue("sex", "male");
+    setValue("grossSalary", 8000);
+    setValue("workStartYear", 2010);
+    setValue("workEndYear", currentYear + 30); // 30 lat do emerytury
+    setValue("zusAccount", 50000);
+    setValue("zusSubAccount", 15000);
+    setValue("startCapital", 0);
+    setValue("ofeAccount", 0);
+    setValue("desiredPension", 5000);
+    setValue("includeSickLeave", false);
+    
+    // Jeśli jest callback dla desiredPension, wywołaj go
+    if (onDesiredPensionChange) {
+      onDesiredPensionChange(5000);
+    }
+  };
+
   const onSubmit = async (data: SimulationFormData) => {
     setIsSubmitting(true);
     setError(null);
@@ -111,6 +132,21 @@ export default function SimulationForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Demo button - dyskretny na górze */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={fillDemoData}
+          className="text-xs text-gray-500 dark:text-gray-400 hover:text-zus-blue dark:hover:text-zus-gold underline transition-colors flex items-center gap-1"
+          title="Wypełnij formularz przykładowymi danymi"
+        >
+          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+          </svg>
+          Wypełnij danymi demo
+        </button>
+      </div>
+
       {error && (
         <div
           className="bg-zus-red/10 border border-zus-red text-zus-red px-4 py-3 rounded-lg"
