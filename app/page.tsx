@@ -1,5 +1,6 @@
 'use client';
 
+// Multi-step wizard implementation for pension calculator
 import { useState, useEffect } from 'react';
 import LandingScreen from '@/components/LandingScreen';
 import SimulationForm from '@/components/SimulationForm';
