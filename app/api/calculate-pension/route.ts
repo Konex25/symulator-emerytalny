@@ -9,60 +9,87 @@ import type { SimulationInput, SimulationResult } from '@/types';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Walidacja podstawowa
-    if (!body.age || !body.sex || !body.grossSalary || !body.workStartYear || !body.workEndYear) {
+    if (
+      !body.age ||
+      !body.sex ||
+      !body.grossSalary ||
+      !body.workStartYear ||
+      !body.workEndYear
+    ) {
       return NextResponse.json(
-        { error: 'Brakujące wymagane pola: age, sex, grossSalary, workStartYear, workEndYear' },
+        {
+          error:
+            "Brakujące wymagane pola: age, sex, grossSalary, workStartYear, workEndYear",
+        },
         { status: 400 }
       );
     }
-    
+
     // Walidacja zakresu wartości
     if (body.age < 18 || body.age > 67) {
       return NextResponse.json(
-        { error: 'Wiek musi być w zakresie 18-67' },
+        { error: "Wiek musi być w zakresie 18-67" },
         { status: 400 }
       );
     }
-    
+
     if (body.grossSalary < 3000) {
       return NextResponse.json(
-        { error: 'Wynagrodzenie musi być co najmniej 3000 PLN' },
+        { error: "Wynagrodzenie musi być co najmniej 3000 PLN" },
         { status: 400 }
       );
     }
-    
-    if (body.workStartYear < 1960 || body.workStartYear > 2080) {
+
+    if (body.workStartYear < 1960 || body.workStartYear > 2100) {
       return NextResponse.json(
-        { error: 'Rok rozpoczęcia pracy musi być w zakresie 1960-2080' },
+        { error: "Rok rozpoczęcia pracy musi być w zakresie 1960-2100" },
         { status: 400 }
       );
     }
-    
+
+    if (body.workEndYear < 1960 || body.workEndYear > 2100) {
+      return NextResponse.json(
+        { error: "Rok zakończenia pracy musi być w zakresie 1960-2100" },
+        { status: 400 }
+      );
+    }
+
     if (body.workEndYear < body.workStartYear) {
       return NextResponse.json(
-        { error: 'Rok zakończenia pracy nie może być wcześniejszy niż rok rozpoczęcia' },
+        {
+          error:
+            "Rok zakończenia pracy nie może być wcześniejszy niż rok rozpoczęcia",
+        },
         { status: 400 }
       );
     }
-    
+
     // Przygotuj dane wejściowe
     const input: SimulationInput = {
       age: parseInt(body.age),
-      sex: body.sex === 'male' || body.sex === 'female' ? body.sex : 'male',
+      sex: body.sex === "male" || body.sex === "female" ? body.sex : "male",
       grossSalary: parseFloat(body.grossSalary),
       workStartYear: parseInt(body.workStartYear),
       workEndYear: parseInt(body.workEndYear),
       zusAccount: body.zusAccount ? parseFloat(body.zusAccount) : undefined,
-      zusSubAccount: body.zusSubAccount ? parseFloat(body.zusSubAccount) : undefined,
+      zusSubAccount: body.zusSubAccount
+        ? parseFloat(body.zusSubAccount)
+        : undefined,
+      startCapital: body.startCapital
+        ? parseFloat(body.startCapital)
+        : undefined,
+      ofeAccount: body.ofeAccount ? parseFloat(body.ofeAccount) : undefined,
       includeSickLeave: body.includeSickLeave === true,
-      desiredPension: body.desiredPension ? parseFloat(body.desiredPension) : undefined,
+      desiredPension: body.desiredPension
+        ? parseFloat(body.desiredPension)
+        : undefined,
     };
-    
+
     // Wykonaj kalkulacje
     const result: SimulationResult = calculateFullSimulation(input);
-    
+
     // Zwróć wyniki
     return NextResponse.json({
       success: true,
@@ -70,13 +97,12 @@ export async function POST(request: NextRequest) {
       result,
       timestamp: new Date().toISOString(),
     });
-    
   } catch (error) {
-    console.error('Błąd podczas obliczania emerytury:', error);
+    console.error("Błąd podczas obliczania emerytury:", error);
     return NextResponse.json(
-      { 
-        error: 'Wystąpił błąd podczas obliczania emerytury',
-        details: error instanceof Error ? error.message : 'Nieznany błąd'
+      {
+        error: "Wystąpił błąd podczas obliczania emerytury",
+        details: error instanceof Error ? error.message : "Nieznany błąd",
       },
       { status: 500 }
     );
@@ -88,12 +114,25 @@ export async function POST(request: NextRequest) {
  */
 export async function GET() {
   return NextResponse.json({
-    message: 'API Calculator ZUS - użyj POST z danymi symulacji',
-    requiredFields: ['age', 'sex', 'grossSalary', 'workStartYear', 'workEndYear'],
-    optionalFields: ['zusAccount', 'zusSubAccount', 'includeSickLeave', 'desiredPension'],
+    message: "API Calculator ZUS - użyj POST z danymi symulacji",
+    requiredFields: [
+      "age",
+      "sex",
+      "grossSalary",
+      "workStartYear",
+      "workEndYear",
+    ],
+    optionalFields: [
+      "zusAccount",
+      "zusSubAccount",
+      "startCapital",
+      "ofeAccount",
+      "includeSickLeave",
+      "desiredPension",
+    ],
     example: {
       age: 30,
-      sex: 'male',
+      sex: "male",
       grossSalary: 8000,
       workStartYear: 2015,
       workEndYear: 2055,

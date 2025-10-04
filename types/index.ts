@@ -5,12 +5,14 @@
 // Dane wejściowe użytkownika do symulacji
 export interface SimulationInput {
   age: number;
-  sex: 'male' | 'female';
+  sex: "male" | "female";
   grossSalary: number;
   workStartYear: number;
   workEndYear: number;
   zusAccount?: number;
   zusSubAccount?: number;
+  startCapital?: number; // Kwota zwaloryzowanego kapitału początkowego
+  ofeAccount?: number; // Środki zgromadzone na rachunku OFE
   includeSickLeave: boolean;
   desiredPension?: number;
 }

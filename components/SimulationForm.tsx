@@ -49,15 +49,19 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
       // Przygotuj dane do API (konwersja pustych stringów na undefined)
       const payload = {
         ...data,
-        zusAccount: data.zusAccount === '' ? undefined : data.zusAccount,
-        zusSubAccount: data.zusSubAccount === '' ? undefined : data.zusSubAccount,
-        desiredPension: data.desiredPension === '' ? undefined : data.desiredPension,
+        zusAccount: data.zusAccount === "" ? undefined : data.zusAccount,
+        zusSubAccount:
+          data.zusSubAccount === "" ? undefined : data.zusSubAccount,
+        startCapital: data.startCapital === "" ? undefined : data.startCapital,
+        ofeAccount: data.ofeAccount === "" ? undefined : data.ofeAccount,
+        desiredPension:
+          data.desiredPension === "" ? undefined : data.desiredPension,
       };
 
-      const response = await fetch('/api/calculate-pension', {
-        method: 'POST',
+      const response = await fetch("/api/calculate-pension", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
@@ -65,7 +69,7 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Błąd podczas obliczania emerytury');
+        throw new Error(result.error || "Błąd podczas obliczania emerytury");
       }
 
       if (onSuccess && result.result) {
@@ -77,13 +81,17 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
           workEndYear: payload.workEndYear,
           zusAccount: payload.zusAccount,
           zusSubAccount: payload.zusSubAccount,
+          startCapital: payload.startCapital,
+          ofeAccount: payload.ofeAccount,
           includeSickLeave: payload.includeSickLeave,
           desiredPension: payload.desiredPension,
         };
         onSuccess(result.result, inputForCallback);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd');
+      setError(
+        err instanceof Error ? err.message : "Wystąpił nieoczekiwany błąd"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -92,7 +100,10 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {error && (
-        <div className="bg-zus-red/10 border border-zus-red text-zus-red px-4 py-3 rounded-lg" role="alert">
+        <div
+          className="bg-zus-red/10 border border-zus-red text-zus-red px-4 py-3 rounded-lg"
+          role="alert"
+        >
           <strong className="font-bold">Błąd: </strong>
           <span>{error}</span>
         </div>
@@ -107,15 +118,19 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
           <input
             id="age"
             type="number"
-            {...register('age', { valueAsNumber: true })}
-            className={`input-field ${errors.age ? 'border-zus-red' : ''}`}
+            {...register("age", { valueAsNumber: true })}
+            className={`input-field ${errors.age ? "border-zus-red" : ""}`}
             placeholder="np. 30"
             aria-required="true"
-            aria-invalid={errors.age ? 'true' : 'false'}
-            aria-describedby={errors.age ? 'age-error' : undefined}
+            aria-invalid={errors.age ? "true" : "false"}
+            aria-describedby={errors.age ? "age-error" : undefined}
           />
           {errors.age && (
-            <p id="age-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="age-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {errors.age.message}
             </p>
           )}
@@ -128,18 +143,22 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
           </label>
           <select
             id="sex"
-            {...register('sex')}
-            className={`input-field ${errors.sex ? 'border-zus-red' : ''}`}
+            {...register("sex")}
+            className={`input-field ${errors.sex ? "border-zus-red" : ""}`}
             aria-required="true"
-            aria-invalid={errors.sex ? 'true' : 'false'}
-            aria-describedby={errors.sex ? 'sex-error' : undefined}
+            aria-invalid={errors.sex ? "true" : "false"}
+            aria-describedby={errors.sex ? "sex-error" : undefined}
           >
             <option value="">Wybierz płeć</option>
             <option value="female">Kobieta</option>
             <option value="male">Mężczyzna</option>
           </select>
           {errors.sex && (
-            <p id="sex-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="sex-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {errors.sex.message}
             </p>
           )}
@@ -148,21 +167,30 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
         {/* Wynagrodzenie brutto */}
         <div>
           <label htmlFor="grossSalary" className="label">
-            Wynagrodzenie brutto (PLN/mies.) <span className="text-zus-red">*</span>
+            Wynagrodzenie brutto (PLN/mies.){" "}
+            <span className="text-zus-red">*</span>
           </label>
           <input
             id="grossSalary"
             type="number"
             step="0.01"
-            {...register('grossSalary', { valueAsNumber: true })}
-            className={`input-field ${errors.grossSalary ? 'border-zus-red' : ''}`}
+            {...register("grossSalary", { valueAsNumber: true })}
+            className={`input-field ${
+              errors.grossSalary ? "border-zus-red" : ""
+            }`}
             placeholder="np. 8000"
             aria-required="true"
-            aria-invalid={errors.grossSalary ? 'true' : 'false'}
-            aria-describedby={errors.grossSalary ? 'grossSalary-error' : undefined}
+            aria-invalid={errors.grossSalary ? "true" : "false"}
+            aria-describedby={
+              errors.grossSalary ? "grossSalary-error" : undefined
+            }
           />
           {errors.grossSalary && (
-            <p id="grossSalary-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="grossSalary-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {errors.grossSalary.message}
             </p>
           )}
@@ -179,15 +207,23 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
           <input
             id="workStartYear"
             type="number"
-            {...register('workStartYear', { valueAsNumber: true })}
-            className={`input-field ${errors.workStartYear ? 'border-zus-red' : ''}`}
+            {...register("workStartYear", { valueAsNumber: true })}
+            className={`input-field ${
+              errors.workStartYear ? "border-zus-red" : ""
+            }`}
             placeholder="np. 2015"
             aria-required="true"
-            aria-invalid={errors.workStartYear ? 'true' : 'false'}
-            aria-describedby={errors.workStartYear ? 'workStartYear-error' : undefined}
+            aria-invalid={errors.workStartYear ? "true" : "false"}
+            aria-describedby={
+              errors.workStartYear ? "workStartYear-error" : undefined
+            }
           />
           {errors.workStartYear && (
-            <p id="workStartYear-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="workStartYear-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {errors.workStartYear.message}
             </p>
           )}
@@ -196,25 +232,38 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
         {/* Rok zakończenia pracy */}
         <div>
           <label htmlFor="workEndYear" className="label">
-            Planowany rok zakończenia pracy <span className="text-zus-red">*</span>
+            Planowany rok zakończenia pracy{" "}
+            <span className="text-zus-red">*</span>
           </label>
           <input
             id="workEndYear"
             type="number"
-            {...register('workEndYear', { valueAsNumber: true })}
-            className={`input-field ${errors.workEndYear ? 'border-zus-red' : ''}`}
+            {...register("workEndYear", { valueAsNumber: true })}
+            className={`input-field ${
+              errors.workEndYear ? "border-zus-red" : ""
+            }`}
             placeholder="Wypełni się automatycznie"
             aria-required="true"
-            aria-invalid={errors.workEndYear ? 'true' : 'false'}
-            aria-describedby={errors.workEndYear ? 'workEndYear-error workEndYear-help' : 'workEndYear-help'}
+            aria-invalid={errors.workEndYear ? "true" : "false"}
+            aria-describedby={
+              errors.workEndYear
+                ? "workEndYear-error workEndYear-help"
+                : "workEndYear-help"
+            }
           />
           {errors.workEndYear && (
-            <p id="workEndYear-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="workEndYear-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {errors.workEndYear.message}
             </p>
           )}
           <p id="workEndYear-help" className="text-xs text-gray-600 mt-1">
-            Domyślnie: rok osiągnięcia wieku emerytalnego (60 lat dla kobiet, 65 dla mężczyzn)
+            Domyślnie: rok osiągnięcia wieku emerytalnego (60 lat dla kobiet, 65
+            dla mężczyzn). Możesz podać inny rok - wiek emerytalny zostanie
+            obliczony automatycznie.
           </p>
         </div>
 
@@ -227,22 +276,29 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
             id="zusAccount"
             type="number"
             step="0.01"
-            {...register('zusAccount', { 
-              setValueAs: (v) => v === '' ? undefined : parseFloat(v),
+            {...register("zusAccount", {
+              setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
-            className={`input-field ${errors.zusAccount ? 'border-zus-red' : ''}`}
+            className={`input-field ${
+              errors.zusAccount ? "border-zus-red" : ""
+            }`}
             placeholder="Opcjonalnie"
-            aria-invalid={errors.zusAccount ? 'true' : 'false'}
-            aria-describedby={errors.zusAccount ? 'zusAccount-error zusAccount-help' : 'zusAccount-help'}
+            aria-invalid={errors.zusAccount ? "true" : "false"}
+            aria-describedby={
+              errors.zusAccount
+                ? "zusAccount-error zusAccount-help"
+                : "zusAccount-help"
+            }
           />
           {errors.zusAccount && (
-            <p id="zusAccount-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="zusAccount-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {errors.zusAccount.message}
             </p>
           )}
-          <p id="zusAccount-help" className="text-xs text-gray-600 mt-1">
-            Jeśli nie podasz, zostanie oszacowane na podstawie historii
-          </p>
         </div>
 
         {/* Środki na subkoncie ZUS */}
@@ -254,19 +310,102 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
             id="zusSubAccount"
             type="number"
             step="0.01"
-            {...register('zusSubAccount', {
-              setValueAs: (v) => v === '' ? undefined : parseFloat(v),
+            {...register("zusSubAccount", {
+              setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
-            className={`input-field ${errors.zusSubAccount ? 'border-zus-red' : ''}`}
+            className={`input-field ${
+              errors.zusSubAccount ? "border-zus-red" : ""
+            }`}
             placeholder="Opcjonalnie"
-            aria-invalid={errors.zusSubAccount ? 'true' : 'false'}
-            aria-describedby={errors.zusSubAccount ? 'zusSubAccount-error' : undefined}
+            aria-invalid={errors.zusSubAccount ? "true" : "false"}
+            aria-describedby={
+              errors.zusSubAccount ? "zusSubAccount-error" : undefined
+            }
           />
           {errors.zusSubAccount && (
-            <p id="zusSubAccount-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="zusSubAccount-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {errors.zusSubAccount.message}
             </p>
           )}
+        </div>
+
+        {/* Kwota zwaloryzowanego kapitału początkowego */}
+        <div>
+          <label htmlFor="startCapital" className="label">
+            Kwota zwaloryzowanego kapitału początkowego (PLN)
+          </label>
+          <input
+            id="startCapital"
+            type="number"
+            step="0.01"
+            {...register("startCapital", {
+              setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
+            })}
+            className={`input-field ${
+              errors.startCapital ? "border-zus-red" : ""
+            }`}
+            placeholder="Opcjonalnie"
+            aria-invalid={errors.startCapital ? "true" : "false"}
+            aria-describedby={
+              errors.startCapital
+                ? "startCapital-error startCapital-help"
+                : "startCapital-help"
+            }
+          />
+          {errors.startCapital && (
+            <p
+              id="startCapital-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
+              {errors.startCapital.message}
+            </p>
+          )}
+          <p id="startCapital-help" className="text-xs text-gray-600 mt-1">
+            Kapitał początkowy z poprzednich systemów emerytalnych. Dotyczy osób
+            pracujących przed 1999 rokiem.
+          </p>
+        </div>
+
+        {/* Środki zgromadzone na rachunku OFE */}
+        <div>
+          <label htmlFor="ofeAccount" className="label">
+            Środki zgromadzone na rachunku OFE (PLN)
+          </label>
+          <input
+            id="ofeAccount"
+            type="number"
+            step="0.01"
+            {...register("ofeAccount", {
+              setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
+            })}
+            className={`input-field ${
+              errors.ofeAccount ? "border-zus-red" : ""
+            }`}
+            placeholder="Opcjonalnie"
+            aria-invalid={errors.ofeAccount ? "true" : "false"}
+            aria-describedby={
+              errors.ofeAccount
+                ? "ofeAccount-error ofeAccount-help"
+                : "ofeAccount-help"
+            }
+          />
+          {errors.ofeAccount && (
+            <p
+              id="ofeAccount-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
+              {errors.ofeAccount.message}
+            </p>
+          )}
+          <p id="ofeAccount-help" className="text-xs text-gray-600 mt-1">
+            Środki z Otwartych Funduszy Emerytalnych
+          </p>
         </div>
 
         {/* Oczekiwana emerytura */}
@@ -278,16 +417,26 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
             id="desiredPension"
             type="number"
             step="0.01"
-            {...register('desiredPension', {
-              setValueAs: (v) => v === '' ? undefined : parseFloat(v),
+            {...register("desiredPension", {
+              setValueAs: (v) => (v === "" ? undefined : parseFloat(v)),
             })}
-            className={`input-field ${errors.desiredPension ? 'border-zus-red' : ''}`}
+            className={`input-field ${
+              errors.desiredPension ? "border-zus-red" : ""
+            }`}
             placeholder="np. 5000"
-            aria-invalid={errors.desiredPension ? 'true' : 'false'}
-            aria-describedby={errors.desiredPension ? 'desiredPension-error desiredPension-help' : 'desiredPension-help'}
+            aria-invalid={errors.desiredPension ? "true" : "false"}
+            aria-describedby={
+              errors.desiredPension
+                ? "desiredPension-error desiredPension-help"
+                : "desiredPension-help"
+            }
           />
           {errors.desiredPension && (
-            <p id="desiredPension-error" className="text-zus-red text-sm mt-1" role="alert">
+            <p
+              id="desiredPension-error"
+              className="text-zus-red text-sm mt-1"
+              role="alert"
+            >
               {errors.desiredPension.message}
             </p>
           )}
@@ -303,17 +452,21 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
           <input
             id="includeSickLeave"
             type="checkbox"
-            {...register('includeSickLeave')}
+            {...register("includeSickLeave")}
             className="w-4 h-4 text-zus-green border-gray-300 rounded focus:ring-zus-green focus:ring-2"
             aria-describedby="includeSickLeave-help"
           />
         </div>
         <div className="ml-3">
-          <label htmlFor="includeSickLeave" className="font-medium text-gray-700">
+          <label
+            htmlFor="includeSickLeave"
+            className="font-medium text-gray-700"
+          >
             Uwzględnij możliwość zwolnień lekarskich
           </label>
           <p id="includeSickLeave-help" className="text-xs text-gray-600 mt-1">
-            Średnio: 12 dni/rok (mężczyźni), 16 dni/rok (kobiety). Zwolnienia zmniejszają składki emerytalne.
+            Średnio: 12 dni/rok (mężczyźni), 16 dni/rok (kobiety). Zwolnienia
+            zmniejszają składki emerytalne.
           </p>
         </div>
       </div>
@@ -328,14 +481,30 @@ export default function SimulationForm({ onSuccess, desiredPension }: Simulation
         >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               Obliczam...
             </span>
           ) : (
-            'Prognozuj moją przyszłą emeryturę'
+            "Prognozuj moją przyszłą emeryturę"
           )}
         </button>
       </div>

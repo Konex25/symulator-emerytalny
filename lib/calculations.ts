@@ -3,8 +3,286 @@
  * Zakład Ubezpieczeń Społecznych - Symulator Emerytalny
  */
 
-import { RETIREMENT_AGE, ECONOMIC_INDICATORS, SICK_LEAVE_AVERAGES, AVERAGE_PENSIONS } from './constants';
-import type { SimulationInput, SimulationResult } from '@/types';
+import {
+  RETIREMENT_AGE,
+  ECONOMIC_INDICATORS,
+  SICK_LEAVE_AVERAGES,
+  AVERAGE_PENSIONS,
+  MONTHLY_CONTRIBUTIONS,
+} from "./constants";
+import type { SimulationInput, SimulationResult } from "@/types";
+import { calculateActualRetirementAge } from "./validationSchema";
+import {
+  parseGUSLifespanData,
+  parseValorizationParams,
+  getRemainingLifeMonths,
+  getValorizationParams,
+  type GUSLifespanData,
+  type ValorizationParams,
+} from "./dataParsers";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+// Cache for parsed data to avoid re-parsing on every calculation
+let cachedLifespanData: GUSLifespanData | null = null;
+let cachedValorizationData: ValorizationParams[] | null = null;
+
+/**
+ * Load and cache the CSV data
+ */
+function loadCSVData() {
+  if (cachedLifespanData && cachedValorizationData) {
+    return {
+      lifespanData: cachedLifespanData,
+      valorizationData: cachedValorizationData,
+    };
+  }
+
+  try {
+    // Load GUS lifespan data from public directory
+    const lifespanPath = join(
+      process.cwd(),
+      "public",
+      "GUS_estimated_lifespan.csv"
+    );
+    const lifespanCSV = readFileSync(lifespanPath, "utf-8");
+    cachedLifespanData = parseGUSLifespanData(lifespanCSV);
+
+    // Load valorization parameters from public directory
+    const valorizationPath = join(
+      process.cwd(),
+      "public",
+      "ValorizationParams.csv"
+    );
+    const valorizationCSV = readFileSync(valorizationPath, "utf-8");
+    cachedValorizationData = parseValorizationParams(valorizationCSV);
+
+    return {
+      lifespanData: cachedLifespanData,
+      valorizationData: cachedValorizationData,
+    };
+  } catch (error) {
+    console.error("Error loading CSV data:", error);
+    throw new Error("Nie można załadować danych do obliczeń");
+  }
+}
+
+/**
+ * Calculate actual pension using ZUS formula: emerytura = podstawa obliczenia emerytury / średnie dalsze trwanie życia
+ * Podstawa obliczenia emerytury = zwaloryzowany kapitał początkowy + zwaloryzowane składki ZUS + zwaloryzowane środki subkonta
+ */
+export function calculateActualPension(input: SimulationInput): number {
+  const { lifespanData, valorizationData } = loadCSVData();
+
+  const {
+    age,
+    sex,
+    grossSalary,
+    workStartYear,
+    workEndYear,
+    zusAccount,
+    zusSubAccount,
+    startCapital = 0,
+    ofeAccount = 0,
+  } = input;
+
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth(); // 0-11
+  const actualRetirementAge = calculateActualRetirementAge(age, workEndYear);
+  const retirementYear = workEndYear; // Używamy roku zakończenia pracy jako roku emerytury
+
+  // Get estimated months of living from GUS data (średnie dalsze trwanie życia)
+  const estimatedMonthsOfLiving = getRemainingLifeMonths(
+    lifespanData,
+    actualRetirementAge,
+    currentMonth
+  );
+
+  if (estimatedMonthsOfLiving <= 0) {
+    throw new Error(
+      "Nie można obliczyć emerytury - brak danych o długości życia"
+    );
+  }
+
+  // Calculate podstawa obliczenia emerytury (pension calculation base)
+  let pensionBase = 0;
+
+  // 1. Zwaloryzowany kapitał początkowy (jeśli byłeś objęty ubezpieczeniem przed 1 stycznia 1999 r.)
+  if (startCapital && startCapital > 0) {
+    // Kapitał początkowy jest waloryzowany od 1999 roku do obecnego roku
+    const valorizedStartCapital = applyAnnualValorization(
+      startCapital,
+      valorizationData,
+      1999, // Kapitał początkowy ustalony na 1 stycznia 1999
+      currentYear
+    );
+    pensionBase += valorizedStartCapital;
+  }
+
+  // 2. Zwaloryzowane składki na ubezpieczenie emerytalne (ZUS account)
+  let zusAccountValue = 0;
+
+  // Zawsze obliczamy składki z wynagrodzenia
+  const calculatedContributions = calculateAccumulatedContributions(
+    grossSalary,
+    workEndYear - workStartYear,
+    workStartYear,
+    currentYear,
+    retirementYear,
+    valorizationData,
+    MONTHLY_CONTRIBUTIONS.zusAccountMonthly
+  );
+  zusAccountValue += calculatedContributions;
+
+  // Jeśli użytkownik podał dodatkowe środki, dodajemy je (już zwaloryzowane)
+  if (zusAccount && zusAccount > 0) {
+    // Środki już zgromadzone - waloryzujemy od roku rozpoczęcia pracy do obecnego roku
+    const valorizedExistingFunds = applyAnnualValorization(
+      zusAccount,
+      valorizationData,
+      workStartYear,
+      currentYear
+    );
+    zusAccountValue += valorizedExistingFunds;
+  }
+
+  pensionBase += zusAccountValue;
+
+  // 3. Zwaloryzowane środki subkonta (OFE + przeniesione środki)
+  let subAccountValue = (zusSubAccount || 0) + (ofeAccount || 0);
+  if (subAccountValue > 0) {
+    // Środki subkonta - waloryzujemy od roku rozpoczęcia pracy do obecnego roku
+    // (uproszczenie: zakładamy że środki zostały zgromadzone równomiernie przez cały okres pracy)
+    subAccountValue = applySubAccountAnnualValorization(
+      subAccountValue,
+      valorizationData,
+      workStartYear,
+      currentYear
+    );
+  }
+  pensionBase += subAccountValue;
+
+  // Calculate actual pension: podstawa obliczenia emerytury / średnie dalsze trwanie życia
+  const actualPension = pensionBase / estimatedMonthsOfLiving;
+
+  return Math.round(actualPension * 100) / 100;
+}
+
+/**
+ * Apply annual valorization from CSV data - zgodnie z zasadami ZUS
+ * Waloryzacja odbywa się rocznie do 31 stycznia każdego roku
+ * Składki są waloryzowane tylko do roku ich wpłaty, nie do emerytury
+ */
+function applyAnnualValorization(
+  accumulatedAmount: number,
+  valorizationData: ValorizationParams[],
+  contributionYear: number,
+  currentYear: number
+): number {
+  let valorizedAmount = accumulatedAmount;
+
+  // Apply valorization only from contribution year to current year (31 stycznia)
+  // Składki są waloryzowane tylko do ostatniej waloryzacji rocznej
+  for (let year = contributionYear; year < currentYear; year++) {
+    const valorizationParams = getValorizationParams(
+      valorizationData,
+      year,
+      "I"
+    ); // January valorization
+
+    if (valorizationParams) {
+      // Apply ZUS account valorization rate
+      valorizedAmount *= valorizationParams.accountIndexation;
+    } else {
+      console.warn(`No valorization data found for year ${year}`);
+    }
+  }
+
+  return valorizedAmount;
+}
+
+/**
+ * Apply annual valorization from CSV data to sub-account - zgodnie z zasadami ZUS
+ */
+function applySubAccountAnnualValorization(
+  accumulatedAmount: number,
+  valorizationData: ValorizationParams[],
+  contributionYear: number,
+  currentYear: number
+): number {
+  let valorizedAmount = accumulatedAmount;
+
+  // Apply valorization only from contribution year to current year (31 stycznia)
+  for (let year = contributionYear; year < currentYear; year++) {
+    const valorizationParams = getValorizationParams(
+      valorizationData,
+      year,
+      "I"
+    ); // January valorization
+
+    if (valorizationParams) {
+      // Apply sub-account valorization rate
+      valorizedAmount *= valorizationParams.subAccountIndexation;
+    } else {
+      console.warn(`No valorization data found for year ${year}`);
+    }
+  }
+
+  return valorizedAmount;
+}
+
+/**
+ * Calculate accumulated contributions with monthly rates and annual valorization - zgodnie z ZUS
+ * Składki są waloryzowane tylko do ostatniej waloryzacji rocznej (31 stycznia)
+ */
+function calculateAccumulatedContributions(
+  grossSalary: number,
+  yearsWorked: number,
+  workStartYear: number,
+  currentYear: number,
+  retirementYear: number,
+  valorizationData: ValorizationParams[],
+  monthlyRate: number
+): number {
+  let totalAccumulated = 0;
+  const actualYearsWorked = Math.min(yearsWorked, currentYear - workStartYear);
+
+  // Calculate historical contributions with wage growth
+  for (let i = 0; i < actualYearsWorked; i++) {
+    const yearsFromNow = actualYearsWorked - i - 1;
+    const historicalSalary =
+      grossSalary /
+      Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsFromNow);
+    const yearlyContribution = historicalSalary * 12 * monthlyRate;
+
+    // Apply valorization only from contribution year to current year (31 stycznia)
+    const contributionYear = workStartYear + i;
+    const valorizedContribution = applyAnnualValorization(
+      yearlyContribution,
+      valorizationData,
+      contributionYear,
+      currentYear
+    );
+
+    totalAccumulated += valorizedContribution;
+  }
+
+  // Calculate future contributions if still working
+  // Przyszłe składki nie są waloryzowane - są dodawane bez waloryzacji
+  if (retirementYear > currentYear) {
+    const futureYears = retirementYear - currentYear;
+    for (let i = 0; i < futureYears; i++) {
+      const futureSalary =
+        grossSalary * Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, i);
+      const yearlyContribution = futureSalary * 12 * monthlyRate;
+
+      // Przyszłe składki nie są waloryzowane
+      totalAccumulated += yearlyContribution;
+    }
+  }
+
+  return totalAccumulated;
+}
 
 /**
  * Oblicza nominalną emeryturę
@@ -12,7 +290,7 @@ import type { SimulationInput, SimulationResult } from '@/types';
  */
 export function calculateNominalPension(
   age: number,
-  sex: 'male' | 'female',
+  sex: "male" | "female",
   grossSalary: number,
   workStartYear: number,
   workEndYear: number,
@@ -21,40 +299,49 @@ export function calculateNominalPension(
 ): number {
   const currentYear = new Date().getFullYear();
   const retirementAge = RETIREMENT_AGE[sex];
-  
+
   // Oblicz lata pracy
   const yearsWorked = workEndYear - workStartYear;
-  
+
   // Jeśli środki nie są podane, szacuj na podstawie historii
   let totalFunds = zusAccount || 0;
   const subAccountFunds = zusSubAccount || 0;
-  
+
   if (!zusAccount) {
     // Szacowanie środków - indeksacja wsteczna wynagrodzeń
-    totalFunds = estimateZUSAccount(grossSalary, yearsWorked, workStartYear, currentYear);
+    totalFunds = estimateZUSAccount(
+      grossSalary,
+      yearsWorked,
+      workStartYear,
+      currentYear
+    );
   }
-  
+
   // Prognoza przyszłych wpłat (jeśli jeszcze pracuje)
   if (workEndYear > currentYear) {
     const futureYears = workEndYear - currentYear;
-    const futureContributions = calculateFutureContributions(grossSalary, futureYears);
+    const futureContributions = calculateFutureContributions(
+      grossSalary,
+      futureYears
+    );
     totalFunds += futureContributions;
   }
-  
+
   totalFunds += subAccountFunds;
-  
+
   // Średnia długość życia po emeryturze (uproszczone)
-  const lifeExpectancyAfterRetirement = sex === 'male' ? 18 : 24; // lata
+  const lifeExpectancyAfterRetirement = sex === "male" ? 18 : 24; // lata
   const monthsOfPension = lifeExpectancyAfterRetirement * 12;
-  
+
   // Emerytura miesięczna
   const monthlyPension = totalFunds / monthsOfPension;
-  
+
   return Math.round(monthlyPension * 100) / 100;
 }
 
 /**
  * Szacuje środki zgromadzone na koncie ZUS na podstawie historii wynagrodzeń
+ * Używa składki emerytalnej 19,52% zgodnie z zasadami ZUS
  */
 function estimateZUSAccount(
   currentSalary: number,
@@ -64,31 +351,42 @@ function estimateZUSAccount(
 ): number {
   let totalContributions = 0;
   const actualYearsWorked = Math.min(yearsWorked, currentYear - startYear);
-  
+
   // Indeksacja wsteczna - zakładamy że wynagrodzenie rosło o 4% rocznie
   for (let i = 0; i < actualYearsWorked; i++) {
     const yearsFromNow = actualYearsWorked - i - 1;
-    const historicalSalary = currentSalary / Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsFromNow);
-    const yearlyContribution = historicalSalary * 12 * ECONOMIC_INDICATORS.contributionRate;
+    const historicalSalary =
+      currentSalary /
+      Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsFromNow);
+    // Składka emerytalna 19,52% z wynagrodzenia brutto
+    const yearlyContribution =
+      historicalSalary * 12 * ECONOMIC_INDICATORS.contributionRate;
     totalContributions += yearlyContribution;
   }
-  
+
   return totalContributions;
 }
 
 /**
- * Oblicza przyszłe składki
+ * Oblicza przyszłe składki emerytalne
+ * Używa składki emerytalnej 19,52% zgodnie z zasadami ZUS
  */
-function calculateFutureContributions(grossSalary: number, futureYears: number): number {
+function calculateFutureContributions(
+  grossSalary: number,
+  futureYears: number
+): number {
   let totalContributions = 0;
-  
+
   for (let i = 0; i < futureYears; i++) {
     // Zakładamy wzrost wynagrodzenia o 4% rocznie
-    const futureSalary = grossSalary * Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, i);
-    const yearlyContribution = futureSalary * 12 * ECONOMIC_INDICATORS.contributionRate;
+    const futureSalary =
+      grossSalary * Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, i);
+    // Składka emerytalna 19,52% z wynagrodzenia brutto
+    const yearlyContribution =
+      futureSalary * 12 * ECONOMIC_INDICATORS.contributionRate;
     totalContributions += yearlyContribution;
   }
-  
+
   return totalContributions;
 }
 
@@ -101,16 +399,17 @@ export function calculateRealPension(
   inflationRate: number = ECONOMIC_INDICATORS.averageInflation
 ): number {
   const currentYear = new Date().getFullYear();
-  
+
   if (retirementYear <= currentYear) {
     return nominalPension; // Już na emeryturze
   }
-  
+
   const yearsUntilRetirement = retirementYear - currentYear;
-  
+
   // Dyskontowanie o inflację
-  const realValue = nominalPension / Math.pow(1 + inflationRate, yearsUntilRetirement);
-  
+  const realValue =
+    nominalPension / Math.pow(1 + inflationRate, yearsUntilRetirement);
+
   return Math.round(realValue * 100) / 100;
 }
 
@@ -123,7 +422,7 @@ export function calculateReplacementRate(
   lastGrossSalary: number
 ): number {
   if (lastGrossSalary === 0) return 0;
-  
+
   const rate = pension / lastGrossSalary;
   return Math.round(rate * 1000) / 1000; // 3 miejsca po przecinku
 }
@@ -133,7 +432,7 @@ export function calculateReplacementRate(
  */
 export function calculateSickLeaveImpact(
   yearsWorked: number,
-  sex: 'male' | 'female',
+  sex: "male" | "female",
   grossSalary: number
 ): {
   withSickLeave: number;
@@ -142,19 +441,21 @@ export function calculateSickLeaveImpact(
 } {
   const averageSickDaysPerYear = SICK_LEAVE_AVERAGES[sex];
   const totalSickDays = yearsWorked * averageSickDaysPerYear;
-  
+
   // Podczas zwolnienia składki są mniejsze (80% podstawy)
   const workDaysPerYear = 250; // robocze dni w roku
   const sickLeaveFactor = 0.8; // 80% składki podczas zwolnienia
-  
+
   const totalWorkDays = yearsWorked * workDaysPerYear;
   const effectiveDaysLost = totalSickDays * (1 - sickLeaveFactor);
   const reductionPercentage = effectiveDaysLost / totalWorkDays;
-  
+
   const dailySalary = grossSalary / 21.67; // średnio dni roboczych w miesiącu
   const annualLoss = (effectiveDaysLost / yearsWorked) * dailySalary * 12;
-  const pensionLoss = annualLoss * ECONOMIC_INDICATORS.contributionRate * yearsWorked / (18 * 12); // uproszczone
-  
+  const pensionLoss =
+    (annualLoss * ECONOMIC_INDICATORS.contributionRate * yearsWorked) /
+    (18 * 12); // Składka emerytalna 19,52%
+
   return {
     withSickLeave: Math.round(pensionLoss * 100) / 100,
     withoutSickLeave: 0,
@@ -173,16 +474,18 @@ export function calculateLaterRetirementBonus(
   // Za każdy dodatkowy rok pracy:
   // 1. Dodatkowe składki
   // 2. Krótsza średnia wypłaty emerytury (mniej lat życia)
-  
-  const additionalContributions = grossSalary * 12 * ECONOMIC_INDICATORS.contributionRate * additionalYears;
+
+  const additionalContributions =
+    grossSalary * 12 * ECONOMIC_INDICATORS.contributionRate * additionalYears; // Składka emerytalna 19,52%
   const monthsOfPension = 18 * 12; // zakładamy średnio 18 lat emerytury
   const bonusFromContributions = additionalContributions / monthsOfPension;
-  
+
   // Bonus za skrócenie okresu wypłaty (emerytura jest wyższa bo wypłacana krócej)
-  const shorterPayoutBonus = basePension * (additionalYears / monthsOfPension) * 12;
-  
+  const shorterPayoutBonus =
+    basePension * (additionalYears / monthsOfPension) * 12;
+
   const totalBonus = bonusFromContributions + shorterPayoutBonus;
-  
+
   return Math.round((basePension + totalBonus) * 100) / 100;
 }
 
@@ -195,24 +498,27 @@ export function calculateYearsNeeded(
   grossSalary: number
 ): number {
   if (currentPension >= targetPension) return 0;
-  
+
   const deficit = targetPension - currentPension;
   const monthsOfPension = 18 * 12; // średnio 18 lat emerytury
-  
+
   // Ile dodatkowych składek trzeba zgromadzić
   const additionalFundsNeeded = deficit * monthsOfPension;
-  
+
   // Ile lat pracy to zajmie
-  const annualContribution = grossSalary * 12 * ECONOMIC_INDICATORS.contributionRate;
+  const annualContribution =
+    grossSalary * 12 * ECONOMIC_INDICATORS.contributionRate; // Składka emerytalna 19,52%
   const yearsNeeded = additionalFundsNeeded / annualContribution;
-  
+
   return Math.ceil(yearsNeeded); // zaokrąglamy w górę
 }
 
 /**
  * Główna funkcja obliczająca pełną symulację
  */
-export function calculateFullSimulation(input: SimulationInput): SimulationResult {
+export function calculateFullSimulation(
+  input: SimulationInput
+): SimulationResult {
   const {
     age,
     sex,
@@ -221,54 +527,64 @@ export function calculateFullSimulation(input: SimulationInput): SimulationResul
     workEndYear,
     zusAccount,
     zusSubAccount,
+    startCapital,
+    ofeAccount,
     includeSickLeave,
     desiredPension,
   } = input;
-  
+
   const currentYear = new Date().getFullYear();
-  const retirementAge = RETIREMENT_AGE[sex];
-  const birthYear = currentYear - age;
-  const retirementYear = birthYear + retirementAge;
-  
-  // Oblicz nominalną emeryturę
-  const nominalPension = calculateNominalPension(
-    age,
-    sex,
-    grossSalary,
-    workStartYear,
-    workEndYear,
-    zusAccount,
-    zusSubAccount
-  );
-  
+  const actualRetirementAge = calculateActualRetirementAge(age, workEndYear);
+  const retirementYear = workEndYear; // Używamy roku zakończenia pracy jako roku emerytury
+
+  // Calculate actual pension using the new formula
+  const nominalPension = calculateActualPension(input);
+
   // Oblicz realną emeryturę
   const realPension = calculateRealPension(nominalPension, retirementYear);
-  
+
   // Oblicz stopę zastąpienia
-  const futureGrossSalary = grossSalary * Math.pow(
-    1 + ECONOMIC_INDICATORS.averageWageGrowth,
-    Math.max(0, retirementYear - currentYear)
+  const futureGrossSalary =
+    grossSalary *
+    Math.pow(
+      1 + ECONOMIC_INDICATORS.averageWageGrowth,
+      Math.max(0, retirementYear - currentYear)
+    );
+  const replacementRate = calculateReplacementRate(
+    nominalPension,
+    futureGrossSalary
   );
-  const replacementRate = calculateReplacementRate(nominalPension, futureGrossSalary);
-  
+
   // Oblicz wpływ zwolnień lekarskich
   const yearsWorked = workEndYear - workStartYear;
   const sickLeaveImpact = includeSickLeave
     ? calculateSickLeaveImpact(yearsWorked, sex, grossSalary)
     : undefined;
-  
+
   // Scenariusze późniejszego przejścia na emeryturę
   const laterRetirementScenarios = {
-    plusOneYear: calculateLaterRetirementBonus(nominalPension, 1, futureGrossSalary),
-    plusTwoYears: calculateLaterRetirementBonus(nominalPension, 2, futureGrossSalary),
-    plusFiveYears: calculateLaterRetirementBonus(nominalPension, 5, futureGrossSalary),
+    plusOneYear: calculateLaterRetirementBonus(
+      nominalPension,
+      1,
+      futureGrossSalary
+    ),
+    plusTwoYears: calculateLaterRetirementBonus(
+      nominalPension,
+      2,
+      futureGrossSalary
+    ),
+    plusFiveYears: calculateLaterRetirementBonus(
+      nominalPension,
+      5,
+      futureGrossSalary
+    ),
   };
-  
+
   // Oblicz lata potrzebne do osiągnięcia celu
   const yearsNeededForGoal = desiredPension
     ? calculateYearsNeeded(nominalPension, desiredPension, futureGrossSalary)
     : undefined;
-  
+
   return {
     nominalPension,
     realPension,
