@@ -385,7 +385,7 @@ export default function Home() {
                         value: "Emerytura (PLN)",
                         angle: -90,
                         position: "center",
-                        dx: -75,
+                        dx: -100,
                         style: { fill: "#6b7280", textAnchor: "middle" },
                       }}
                     />
