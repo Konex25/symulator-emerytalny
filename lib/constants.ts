@@ -31,6 +31,9 @@ export const AVERAGE_PENSIONS = {
   high: 8000,
 } as const;
 
+// Najniższe świadczenie emerytalne (2024)
+export const MINIMUM_PENSION = 1780.96;
+
 // Średnie czasy zwolnień lekarskich (dni rocznie)
 export const SICK_LEAVE_AVERAGES = {
   male: 12, // 12 dni rocznie

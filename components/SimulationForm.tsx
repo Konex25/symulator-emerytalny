@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { simulationFormSchema, calculateDefaultWorkEndYear, type SimulationFormData } from '@/lib/validationSchema';
 import type { SimulationResult, SimulationInput } from '@/types';
+import { RETIREMENT_AGE, MINIMUM_PENSION } from "@/lib/constants";
 
 interface SimulationFormProps {
   onSuccess?: (result: SimulationResult, input: SimulationInput) => void;
@@ -109,21 +110,54 @@ export default function SimulationForm({
         throw new Error(result.error || "Błąd podczas obliczania emerytury");
       }
 
-      if (onSuccess && result.result) {
-        const inputForCallback: SimulationInput = {
-          age: payload.age,
-          sex: payload.sex,
-          grossSalary: payload.grossSalary,
-          workStartYear: payload.workStartYear,
-          workEndYear: payload.workEndYear,
-          zusAccount: payload.zusAccount,
-          zusSubAccount: payload.zusSubAccount,
-          startCapital: payload.startCapital,
-          ofeAccount: payload.ofeAccount,
-          includeSickLeave: payload.includeSickLeave,
-          desiredPension: payload.desiredPension,
-        };
-        onSuccess(result.result, inputForCallback);
+      if (result.result) {
+        // Walidacja wieku emerytalnego
+        const currentYear = new Date().getFullYear();
+        const retirementAge = RETIREMENT_AGE[payload.sex];
+        const ageAtRetirement =
+          payload.age + (payload.workEndYear - currentYear);
+
+        if (ageAtRetirement < retirementAge) {
+          throw new Error(
+            `Nie osiągniesz wieku emerytalnego. Wymagany wiek to ${retirementAge} lat (${
+              payload.sex === "male" ? "mężczyźni" : "kobiety"
+            }). Przy podanych danych będziesz mieć ${ageAtRetirement} lat w roku ${
+              payload.workEndYear
+            }.`
+          );
+        }
+
+        // Walidacja minimalnego świadczenia emerytalnego
+        const calculatedPension = result.result.nominalPension;
+        if (calculatedPension < MINIMUM_PENSION) {
+          throw new Error(
+            `Prognozowana emerytura (${calculatedPension.toFixed(
+              2
+            )} zł) jest niższa od najniższego świadczenia emerytalnego (${MINIMUM_PENSION.toFixed(
+              2
+            )} zł). ` +
+              `Przy tak niskim kapitale emerytalnym nie będziesz uprawniony do otrzymania emerytury. ` +
+              `Pracuj dłużej lub zwiększ wysokość wynagrodzenia, aby zgromadzić wystarczający kapitał.`
+          );
+        }
+
+        // Jeśli wszystko ok, wywołaj callback
+        if (onSuccess) {
+          const inputForCallback: SimulationInput = {
+            age: payload.age,
+            sex: payload.sex,
+            grossSalary: payload.grossSalary,
+            workStartYear: payload.workStartYear,
+            workEndYear: payload.workEndYear,
+            zusAccount: payload.zusAccount,
+            zusSubAccount: payload.zusSubAccount,
+            startCapital: payload.startCapital,
+            ofeAccount: payload.ofeAccount,
+            includeSickLeave: payload.includeSickLeave,
+            desiredPension: payload.desiredPension,
+          };
+          onSuccess(result.result, inputForCallback);
+        }
       }
     } catch (err) {
       setError(
