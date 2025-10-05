@@ -70,14 +70,20 @@ export default function Home() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [inputData, setInputData] = useState<SimulationInput | null>(null);
-  const [desiredPension, setDesiredPension] = useState<number | undefined>(undefined);
+  const [desiredPension, setDesiredPension] = useState<number | undefined>(
+    undefined
+  );
   const [hasDataChanges, setHasDataChanges] = useState(false);
   const [updatedInputFromStep2, setUpdatedInputFromStep2] =
     useState<SimulationInput | null>(null);
 
+  // IKE/IKZE monthly contributions (as percentage of gross salary)
+  const [ikePercentage, setIkePercentage] = useState(5); // 5% of gross salary
+  const [ikzePercentage, setIkzePercentage] = useState(3); // 3% of gross salary
+
   // Scroll to top when step changes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentStep]);
 
   const handleStartSimulation = () => {
@@ -477,7 +483,6 @@ export default function Home() {
                     </div>
                   </div>
                 </div>
-
                 {/* IKE */}
                 <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border-2 border-green-300 dark:border-green-600 shadow-sm hover:shadow-md transition-shadow">
                   <div className="text-center mb-3">
@@ -511,30 +516,75 @@ export default function Home() {
                     ** Po 60. roku życia wypłata bez podatku od zysków
                     kapitałowych (19%)
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      Szacunkowa wartość*
+
+                  {/* IKE Contribution Slider */}
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                    <div className="mb-3">
+                      <label className="text-xs text-gray-600 dark:text-gray-400 mb-2 block">
+                        Miesięczna wpłata:{" "}
+                        <span className="font-bold text-green-600 dark:text-green-400">
+                          {ikePercentage}% wynagrodzenia
+                        </span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {" "}
+                          (
+                          {formatCurrency(
+                            Math.round(
+                              (inputData.grossSalary * ikePercentage) / 100
+                            )
+                          )}
+                          )
+                        </span>
+                      </label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        step="0.5"
+                        value={ikePercentage}
+                        onChange={(e) =>
+                          setIkePercentage(Number(e.target.value))
+                        }
+                        className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-green-600"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <span>1%</span>
+                        <span>10%</span>
+                      </div>
                     </div>
-                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                      {(() => {
-                        const years = Math.max(
-                          1,
-                          RETIREMENT_AGE[inputData.sex] - inputData.age
-                        );
-                        const annualContribution = 26019;
-                        const annualRate = 0.05;
-                        const futureValue =
-                          annualContribution *
-                          ((Math.pow(1 + annualRate, years) - 1) / annualRate);
-                        return formatCurrency(Math.round(futureValue));
-                      })()}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      przy maksymalnych wpłatach (26 019 zł/rok)
+
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        Szacunkowa wartość po{" "}
+                        {RETIREMENT_AGE[inputData.sex] - inputData.age} latach*
+                      </div>
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {(() => {
+                          const years = Math.max(
+                            1,
+                            RETIREMENT_AGE[inputData.sex] - inputData.age
+                          );
+                          const monthlyContribution = Math.min(
+                            (inputData.grossSalary * ikePercentage) / 100,
+                            2168 // max monthly limit
+                          );
+                          const monthlyRate = 0.05 / 12;
+                          const months = years * 12;
+                          const futureValue =
+                            monthlyContribution *
+                            ((Math.pow(1 + monthlyRate, months) - 1) /
+                              monthlyRate);
+                          return formatCurrency(Math.round(futureValue));
+                        })()}
+                      </div>
+                      {(inputData.grossSalary * ikePercentage) / 100 > 2168 && (
+                        <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                          ⚠ Ograniczone do limitu: 2 168 zł/mies
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-
                 {/* IKZE */}
                 <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border-2 border-yellow-300 dark:border-yellow-600 shadow-sm hover:shadow-md transition-shadow">
                   <div className="text-center mb-3">
@@ -580,26 +630,89 @@ export default function Home() {
                     ** Wpłaty odlicza się od dochodu (zwrot zależy od progu: 12%
                     lub 32%). Po 65. roku życia wypłata z 10% podatkiem
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                      Szacunkowa wartość*
+
+                  {/* IKZE Contribution Slider */}
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                    <div className="mb-3">
+                      <label className="text-xs text-gray-600 dark:text-gray-400 mb-2 block">
+                        Miesięczna wpłata:{" "}
+                        <span className="font-bold text-yellow-600 dark:text-yellow-400">
+                          {ikzePercentage}% wynagrodzenia
+                        </span>
+                        <span className="text-gray-500 dark:text-gray-400">
+                          {" "}
+                          (
+                          {formatCurrency(
+                            Math.round(
+                              (inputData.grossSalary * ikzePercentage) / 100
+                            )
+                          )}
+                          )
+                        </span>
+                      </label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        step="0.5"
+                        value={ikzePercentage}
+                        onChange={(e) =>
+                          setIkzePercentage(Number(e.target.value))
+                        }
+                        className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-yellow-600"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <span>1%</span>
+                        <span>10%</span>
+                      </div>
                     </div>
-                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                      {(() => {
-                        const years = Math.max(
-                          1,
-                          RETIREMENT_AGE[inputData.sex] - inputData.age
-                        );
-                        const annualContribution = 10408;
-                        const annualRate = 0.05;
-                        const futureValue =
-                          annualContribution *
-                          ((Math.pow(1 + annualRate, years) - 1) / annualRate);
-                        return formatCurrency(Math.round(futureValue));
-                      })()}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      przy maksymalnych wpłatach (10 408 zł/rok)
+
+                    <div className="text-center">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        Szacunkowa wartość po{" "}
+                        {RETIREMENT_AGE[inputData.sex] - inputData.age} latach*
+                      </div>
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {(() => {
+                          const years = Math.max(
+                            1,
+                            RETIREMENT_AGE[inputData.sex] - inputData.age
+                          );
+                          const monthlyContribution = Math.min(
+                            (inputData.grossSalary * ikzePercentage) / 100,
+                            867 // max monthly limit
+                          );
+                          const monthlyRate = 0.05 / 12;
+                          const months = years * 12;
+                          const futureValue =
+                            monthlyContribution *
+                            ((Math.pow(1 + monthlyRate, months) - 1) /
+                              monthlyRate);
+                          return formatCurrency(Math.round(futureValue));
+                        })()}
+                      </div>
+                      {(inputData.grossSalary * ikzePercentage) / 100 > 867 && (
+                        <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                          ⚠ Ograniczone do limitu: 867 zł/mies
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        Roczny zwrot podatku:{" "}
+                        <span className="font-semibold text-yellow-600 dark:text-yellow-400">
+                          {(() => {
+                            const monthlyContribution = Math.min(
+                              (inputData.grossSalary * ikzePercentage) / 100,
+                              867
+                            );
+                            const annualContribution = monthlyContribution * 12;
+                            return `${formatCurrency(
+                              Math.round(annualContribution * 0.12)
+                            )} - ${formatCurrency(
+                              Math.round(annualContribution * 0.32)
+                            )}`;
+                          })()}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
