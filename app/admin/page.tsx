@@ -291,122 +291,124 @@ export default function AdminPage() {
 
         {/* Tabela */}
         {logs.length > 0 ? (
-          <div className="card overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-zus-green/10 dark:bg-zus-green/20 border-b-2 border-zus-green dark:border-zus-green">
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Data
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Czas
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Em. oczekiwana
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Wiek
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Płeć
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Wynagrodzenie
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Zwolnienia
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    ZUS konto
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    ZUS subkonto
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Em. nominalna
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Em. realna
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap">
-                    Kod pocztowy
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log, index) => (
-                  <tr
-                    key={index}
-                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <td className="px-4 py-3 text-sm dark:text-gray-300">
-                      {log.date}
-                    </td>
-                    <td className="px-4 py-3 text-sm dark:text-gray-300">
-                      {log.time}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold text-purple-600 dark:text-purple-400">
-                      {log.expectedPension ? (
-                        formatCurrency(log.expectedPension)
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-600">
-                          —
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right dark:text-gray-300">
-                      {log.age}
-                    </td>
-                    <td className="px-4 py-3 text-sm dark:text-gray-300">
-                      {log.sex === "male" ? "M" : "K"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold dark:text-gray-300">
-                      {formatCurrency(log.salary)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center">
-                      {log.sickLeaveIncluded ? (
-                        <span className="text-zus-green">✓</span>
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-600">
-                          —
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right dark:text-gray-300">
-                      {log.zusAccount ? (
-                        formatCurrency(log.zusAccount)
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-600">
-                          —
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right dark:text-gray-300">
-                      {log.zusSubAccount ? (
-                        formatCurrency(log.zusSubAccount)
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-600">
-                          —
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold text-zus-green">
-                      {formatCurrency(log.nominalPension)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold text-zus-blue">
-                      {formatCurrency(log.realPension)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-center dark:text-gray-300">
-                      {log.postalCode || (
-                        <span className="text-gray-400 dark:text-gray-600">
-                          —
-                        </span>
-                      )}
-                    </td>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <table className="w-full relative">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-zus-green/10 dark:bg-zus-green/20 border-b-2 border-zus-green dark:border-zus-green">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Data
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Czas
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Em. oczekiwana
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Wiek
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Płeć
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Wynagrodzenie
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Zwolnienia
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      ZUS konto
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      ZUS subkonto
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Em. nominalna
+                    </th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Em. realna
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-zus-darkblue dark:text-white whitespace-nowrap bg-zus-green/10 dark:bg-zus-green/20">
+                      Kod pocztowy
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {logs.map((log, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <td className="px-4 py-3 text-sm dark:text-gray-300">
+                        {log.date}
+                      </td>
+                      <td className="px-4 py-3 text-sm dark:text-gray-300">
+                        {log.time}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-semibold text-purple-600 dark:text-purple-400">
+                        {log.expectedPension ? (
+                          formatCurrency(log.expectedPension)
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-600">
+                            —
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right dark:text-gray-300">
+                        {log.age}
+                      </td>
+                      <td className="px-4 py-3 text-sm dark:text-gray-300">
+                        {log.sex === "male" ? "M" : "K"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-semibold dark:text-gray-300">
+                        {formatCurrency(log.salary)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center">
+                        {log.sickLeaveIncluded ? (
+                          <span className="text-zus-green">✓</span>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-600">
+                            —
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right dark:text-gray-300">
+                        {log.zusAccount ? (
+                          formatCurrency(log.zusAccount)
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-600">
+                            —
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right dark:text-gray-300">
+                        {log.zusSubAccount ? (
+                          formatCurrency(log.zusSubAccount)
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-600">
+                            —
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-semibold text-zus-green">
+                        {formatCurrency(log.nominalPension)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-semibold text-zus-blue">
+                        {formatCurrency(log.realPension)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center dark:text-gray-300">
+                        {log.postalCode || (
+                          <span className="text-gray-400 dark:text-gray-600">
+                            —
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         ) : (
           <div className="card text-center py-12">

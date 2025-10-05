@@ -46,12 +46,33 @@ export default function ResultsScreen({
     }
   };
 
+  const handlePostalCodeBlur = () => {
+    // Zapisz kod pocztowy od razu po odkliknięciu (jeśli jest prawidłowy lub pusty)
+    if (!postalCodeError) {
+      const sessionId =
+        sessionStorage.getItem("current_simulation_session") || undefined;
+      saveSimulationToLocalStorage(
+        input,
+        result,
+        postalCode || undefined,
+        sessionId
+      );
+    }
+  };
+
   const handleGeneratePDF = () => {
     setIsGeneratingPDF(true);
 
     try {
-      // Zapisz w localStorage
-      saveSimulationToLocalStorage(input, result, postalCode || undefined);
+      // Pobierz sessionId i zaktualizuj istniejący log z kodem pocztowym
+      const sessionId =
+        sessionStorage.getItem("current_simulation_session") || undefined;
+      saveSimulationToLocalStorage(
+        input,
+        result,
+        postalCode || undefined,
+        sessionId
+      );
 
       // Generuj PDF
       generatePDF(input, result, postalCode || undefined);
@@ -558,6 +579,7 @@ export default function ResultsScreen({
             type="text"
             value={postalCode}
             onChange={handlePostalCodeChange}
+            onBlur={handlePostalCodeBlur}
             placeholder="np. 00-950"
             maxLength={6}
             className={`input-field max-w-xs ${

@@ -43,11 +43,33 @@ export default function ExportStep({
     }
   };
 
+  const handlePostalCodeBlur = () => {
+    // Zapisz kod pocztowy od razu po odkliknięciu (jeśli jest prawidłowy lub pusty)
+    if (!postalCodeError) {
+      const sessionId =
+        sessionStorage.getItem("current_simulation_session") || undefined;
+      saveSimulationToLocalStorage(
+        input,
+        result,
+        postalCode || undefined,
+        sessionId
+      );
+    }
+  };
+
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true);
 
     try {
-      saveSimulationToLocalStorage(input, result, postalCode || undefined);
+      // Pobierz sessionId z sessionStorage i zaktualizuj istniejący log z kodem pocztowym
+      const sessionId =
+        sessionStorage.getItem("current_simulation_session") || undefined;
+      saveSimulationToLocalStorage(
+        input,
+        result,
+        postalCode || undefined,
+        sessionId
+      );
 
       // Czekaj chwilę aby DOM się zaktualizował
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -140,6 +162,7 @@ export default function ExportStep({
             type="text"
             value={postalCode}
             onChange={handlePostalCodeChange}
+            onBlur={handlePostalCodeBlur}
             placeholder="np. 00-950"
             maxLength={6}
             className={`input-field max-w-xs ${
@@ -252,7 +275,8 @@ export default function ExportStep({
                 Portal ZUS
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Oficjalna strona Zakładu Ubezpieczeń Społecznych - wszystko o emeryturach
+                Oficjalna strona Zakładu Ubezpieczeń Społecznych - wszystko o
+                emeryturach
               </p>
               <span className="text-xs text-zus-green dark:text-zus-gold font-semibold">
                 Odwiedź →
@@ -336,7 +360,8 @@ export default function ExportStep({
                 Ministerstwo Finansów
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Informacje o IKE, IKZE i dodatkowych oszczędnościach emerytalnych
+                Informacje o IKE, IKZE i dodatkowych oszczędnościach
+                emerytalnych
               </p>
               <span className="text-xs text-green-600 dark:text-zus-gold font-semibold">
                 Odwiedź →

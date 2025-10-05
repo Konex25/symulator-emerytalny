@@ -129,17 +129,26 @@ export async function generatePDF(
 }
 
 /**
- * Zapisuje dane symulacji w localStorage dla analytics
+ * Generuje unikalny identyfikator sesji dla symulacji
+ */
+function generateSessionId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Zapisuje lub aktualizuje dane symulacji w localStorage dla analytics
+ * @param sessionId - opcjonalny ID sesji; jeśli podany, zaktualizuje istniejący log zamiast dodawać nowy
  */
 export function saveSimulationToLocalStorage(
   input: SimulationInput,
   result: SimulationResult,
-  postalCode?: string
-): void {
+  postalCode?: string,
+  sessionId?: string
+): string {
   const existingData = localStorage.getItem("simulation_logs");
   const logs = existingData ? JSON.parse(existingData) : [];
 
-  const newLog = {
+  const logData = {
     date: new Date().toISOString().split("T")[0],
     time: new Date().toISOString().split("T")[1].split(".")[0],
     expectedPension: input.desiredPension || null,
@@ -154,6 +163,31 @@ export function saveSimulationToLocalStorage(
     postalCode: postalCode || null,
   };
 
+  // Jeśli podano sessionId, znajdź i zaktualizuj istniejący log
+  if (sessionId) {
+    const existingIndex = logs.findIndex(
+      (log: any) => log.sessionId === sessionId
+    );
+    if (existingIndex !== -1) {
+      // Zaktualizuj istniejący log (zachowaj oryginalne date/time)
+      logs[existingIndex] = {
+        ...logs[existingIndex],
+        ...logData,
+        sessionId, // Zachowaj sessionId
+      };
+      localStorage.setItem("simulation_logs", JSON.stringify(logs));
+      return sessionId;
+    }
+  }
+
+  // Jeśli nie ma sessionId lub nie znaleziono loga, dodaj nowy
+  const newSessionId = sessionId || generateSessionId();
+  const newLog = {
+    ...logData,
+    sessionId: newSessionId,
+  };
+
   logs.push(newLog);
   localStorage.setItem("simulation_logs", JSON.stringify(logs));
+  return newSessionId;
 }

@@ -164,7 +164,14 @@ export default function SimulationForm({
           desiredPension: payload.desiredPension,
         };
 
-        saveSimulationToLocalStorage(inputForCallback, result.result);
+        // Zapisz i otrzymaj sessionId
+        const sessionId = saveSimulationToLocalStorage(
+          inputForCallback,
+          result.result
+        );
+
+        // Zapisz sessionId do sessionStorage żeby ExportStep mógł go użyć
+        sessionStorage.setItem("current_simulation_session", sessionId);
 
         // Jeśli wszystko ok, wywołaj callback
         if (onSuccess) {
