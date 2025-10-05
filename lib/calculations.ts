@@ -845,30 +845,7 @@ export function suggestOptimalPaths(
     });
   }
 
-  // #4: INWESTYCJE (IKE/IKZE)
-  const monthlyInvestment = calculateMonthlyInvestmentForGoal(
-    gap,
-    yearsUntilRetirement
-  );
-  if (monthlyInvestment <= 1500) {
-    suggestions.push({
-      id: "investment",
-      title: "Inwestycje długoterminowe",
-      strategy: "investment",
-      description: `Odkładaj ${monthlyInvestment} PLN/mies do IKE/IKZE`,
-      effort: "low",
-      timeframe: yearsUntilRetirement,
-      details: {
-        monthlyInvestment,
-        totalInvested: monthlyInvestment * 12 * yearsUntilRetirement,
-        expectedReturn: gap,
-      },
-      pros: ["Ulga podatkowa", "Długoterminowe", "Pasywne"],
-      cons: ["Wymaga dyscypliny", "Ryzyko rynkowe"],
-    });
-  }
-
-  // #5: REALISTYCZNA dla trudnych przypadków - obniż cel lub pracuj znacznie dłużej
+  // #4: REALISTYCZNA dla trudnych przypadków - obniż cel lub pracuj znacznie dłużej
   if (suggestions.length < 2 && gap > 1500) {
     // Jeśli nie ma realistycznych sugestii, zaproponuj korektę celu
     const reducedTarget = currentPension * 1.3; // +30% obecnej prognozy
