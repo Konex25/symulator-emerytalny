@@ -209,21 +209,21 @@ export default function LandingScreen({
               {funFact ? (
                 <>
                   <p
-                    className="text-lg text-gray-800 leading-relaxed transition-opacity duration-500"
+                    className="text-lg text-gray-800 dark:text-gray-100 leading-relaxed transition-opacity duration-500"
                     key={funFact.id}
                   >
                     {funFact.text}
                   </p>
                   {funFact.category && (
-                    <span className="inline-block mt-3 px-3 py-1 bg-zus-green/10 text-zus-green text-xs font-semibold rounded-full">
+                    <span className="inline-block mt-3 px-3 py-1 bg-zus-green/10 dark:bg-zus-gold/20 text-zus-green dark:text-zus-gold text-xs font-semibold rounded-full">
                       {funFact.category}
                     </span>
                   )}
                 </>
               ) : (
-                <div className="text-lg text-gray-800 leading-relaxed">
-                  <div className="animate-pulse bg-gray-200 h-6 rounded mb-2"></div>
-                  <div className="animate-pulse bg-gray-200 h-6 rounded w-3/4"></div>
+                <div className="text-lg text-gray-800 dark:text-gray-100 leading-relaxed">
+                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-6 rounded mb-2"></div>
+                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-6 rounded w-3/4"></div>
                 </div>
               )}
             </div>
@@ -231,7 +231,7 @@ export default function LandingScreen({
           <div className="mt-4 text-center">
             <button
               onClick={() => setFunFact(getRandomFunFact())}
-              className="text-sm text-zus-blue hover:text-zus-darkblue font-semibold underline transition-colors"
+              className="text-sm text-zus-blue dark:text-zus-gold hover:text-zus-darkblue dark:hover:text-zus-gold/80 font-semibold underline transition-colors"
               aria-label="Pokaż kolejny fakt"
             >
               Zobacz kolejny fakt →
