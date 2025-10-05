@@ -226,8 +226,9 @@ export default function ResultsScreen({
               label={{
                 value: "PLN",
                 angle: -90,
-                position: "insideLeft",
-                style: { fill: "#6b7280" },
+                position: "center",
+                dx: -25,
+                style: { fill: "#6b7280", textAnchor: "middle" },
               }}
             />
             <Tooltip

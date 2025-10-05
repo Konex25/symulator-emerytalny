@@ -378,6 +378,13 @@ export default function Home() {
                     <YAxis
                       tickFormatter={formatCurrency}
                       className="text-sm text-gray-600 dark:text-gray-400"
+                      label={{
+                        value: "Emerytura (PLN)",
+                        angle: -90,
+                        position: "center",
+                        dx: -25,
+                        style: { fill: "#6b7280", textAnchor: "middle" },
+                      }}
                     />
                     <Tooltip
                       cursor={{ fill: "transparent" }}

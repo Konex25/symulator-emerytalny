@@ -160,8 +160,9 @@ export default function LandingScreen({
               label={{
                 value: "Miesięczna emerytura (PLN)",
                 angle: -90,
-                position: "insideLeft",
-                style: { fill: "#374151", fontWeight: "bold" },
+                position: "center",
+                dx: -25,
+                style: { fill: "#374151", fontWeight: "bold", textAnchor: "middle" },
               }}
             />
             <Tooltip

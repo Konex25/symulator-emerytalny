@@ -159,8 +159,9 @@ export default function AdvancedDashboard({
               label={{
                 value: "Zgromadzone środki (PLN)",
                 angle: -90,
-                position: "insideLeft",
-                style: { fill: "#6b7280" },
+                position: "center",
+                dx: -50,
+                style: { fill: "#6b7280", textAnchor: "middle" },
               }}
             />
             <Tooltip content={<CustomTooltip />} />
@@ -221,8 +222,9 @@ export default function AdvancedDashboard({
                 label={{
                   value: "Wynagrodzenie (PLN)",
                   angle: -90,
-                  position: "insideLeft",
-                  style: { fill: "#6b7280" },
+                  position: "center",
+                  dx: -25,
+                  style: { fill: "#6b7280", textAnchor: "middle" },
                 }}
               />
               <Tooltip

@@ -199,10 +199,10 @@ export default function OvertimeCalculator({
         <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Wpływ na emeryturę w czasie
         </h4>
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="100%" height={400}>
           <LineChart
             data={chartData}
-            margin={{ top: 5, right: 30, left: 70, bottom: 35 }}
+            margin={{ top: 5, right: 30, left: 70, bottom: 60 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
@@ -211,7 +211,7 @@ export default function OvertimeCalculator({
               label={{
                 value: "Lata pracy z nadgodzinami",
                 position: "insideBottom",
-                offset: -25,
+                offset: -10,
                 style: { fill: "#6b7280" },
               }}
             />
@@ -222,15 +222,16 @@ export default function OvertimeCalculator({
               label={{
                 value: "Emerytura (PLN)",
                 angle: -90,
-                position: "insideLeft",
-                style: { fill: "#6b7280" },
+                position: "center",
+                dx: -25,
+                style: { fill: "#6b7280", textAnchor: "middle" },
               }}
             />
             <Tooltip
               formatter={(value: number) => formatCurrency(value)}
               labelFormatter={(label) => `Po ${label} latach`}
             />
-            <Legend wrapperStyle={{ paddingTop: "10px" }} />
+            <Legend wrapperStyle={{ paddingTop: "25px" }} />
             <Line
               type="monotone"
               dataKey="1h"
