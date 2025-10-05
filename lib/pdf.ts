@@ -90,15 +90,16 @@ export async function generatePDF(
     }
   };
 
-  // Capture wszystkich sekcji (bez tytułów - screenshoty już je zawierają)
-  await captureAndAddToPDF("pdf-step-1-2");
-  await captureAndAddToPDF("pdf-step-3");
+  // Capture wszystkich sekcji - 1:1 odzwierciedlenie kroków symulatora
+  await captureAndAddToPDF("pdf-step-1"); // Dane wejściowe
+  await captureAndAddToPDF("pdf-step-2"); // Wykres prognozy wzrostu środków ZUS
+  await captureAndAddToPDF("pdf-step-3"); // Kafelki, porównanie, sick leave, PPK/IKE/IKZE
 
   if (input.desiredPension) {
-    await captureAndAddToPDF("pdf-step-4");
+    await captureAndAddToPDF("pdf-step-4"); // Cel emerytalny + personalizowane ścieżki
   }
 
-  await captureAndAddToPDF("pdf-step-5");
+  await captureAndAddToPDF("pdf-step-5"); // Podsumowanie - 3 kafelki
 
   // Dodaj informację o kodzie pocztowym jeśli jest
   if (postalCode) {

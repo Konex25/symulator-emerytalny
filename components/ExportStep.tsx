@@ -8,13 +8,21 @@ import {
   formatPercent,
 } from "@/utils/formatters";
 import { generatePDF, saveSimulationToLocalStorage } from "@/lib/pdf";
-import {
-  calculateGap,
-  suggestOptimalPaths,
-  calculateWorkLongerScenarios,
-  calculateExtraIncomeScenarios,
-} from "@/lib/calculations";
+import { calculateGap, suggestOptimalPaths } from "@/lib/calculations";
 import { RETIREMENT_AGE } from "@/lib/constants";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
 
 interface ExportStepProps {
   input: SimulationInput;
@@ -422,11 +430,11 @@ export default function ExportStep({
         </div>
       </div>
 
-      {/* UKRYTE KONTENERY DO SCREENSHOTÓW PDF */}
+      {/* UKRYTE KONTENERY DO SCREENSHOTÓW PDF - 1:1 z krokami symulatora */}
       <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
-        {/* Krok 1-2: Dane wejściowe */}
+        {/* Krok 1: Dane wejściowe (podsumowanie) */}
         <div
-          id="pdf-step-1-2"
+          id="pdf-step-1"
           style={{
             width: "800px",
             padding: "20px",
@@ -434,7 +442,7 @@ export default function ExportStep({
             fontFamily: "Arial, sans-serif",
           }}
         >
-          <div className="card bg-gradient-to-br from-green-50 to-white border-2 border-green-200">
+          <div className="bg-gradient-to-br from-green-50 to-white border-2 border-green-200 rounded-2xl p-6">
             <h2
               className="text-2xl font-bold text-gray-900 mb-4"
               style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
@@ -478,6 +486,98 @@ export default function ExportStep({
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Krok 2: Wykres prognozy wzrostu środków na kontach ZUS */}
+        <div
+          id="pdf-step-2"
+          style={{
+            width: "800px",
+            padding: "20px",
+            backgroundColor: "#ffffff",
+            fontFamily: "Arial, sans-serif",
+          }}
+        >
+          <h2
+            className="text-xl font-bold text-gray-900 mb-4"
+            style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
+          >
+            Prognoza wzrostu środków na kontach ZUS
+          </h2>
+          <div style={{ width: "100%", height: "300px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={(() => {
+                  const data = [];
+                  const startYear = input.workStartYear;
+                  const endYear = input.workEndYear;
+
+                  for (
+                    let year = startYear;
+                    year <= Math.min(endYear, new Date().getFullYear() + 40);
+                    year++
+                  ) {
+                    const yearsWorked = year - startYear;
+                    const salary =
+                      input.grossSalary * Math.pow(1.04, yearsWorked);
+                    const annualContribution = salary * 12 * 0.1976;
+                    const accountBalance = yearsWorked * annualContribution;
+                    const subAccountBalance = accountBalance * 0.3;
+
+                    data.push({
+                      year,
+                      konto: Math.round(accountBalance),
+                      subkonto: Math.round(subAccountBalance),
+                    });
+                  }
+                  return data;
+                })()}
+                margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="year"
+                  tick={{ fill: "#374151", fontSize: 12 }}
+                  label={{
+                    value: "Rok",
+                    position: "insideBottom",
+                    offset: -5,
+                    style: { fill: "#6b7280" },
+                  }}
+                />
+                <YAxis
+                  tick={{ fill: "#374151", fontSize: 12 }}
+                  label={{
+                    value: "Zgromadzone środki (PLN)",
+                    angle: -90,
+                    position: "center",
+                    dx: -50,
+                    style: { fill: "#6b7280", textAnchor: "middle" },
+                  }}
+                />
+                <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                <Legend wrapperStyle={{ paddingTop: "20px" }} />
+                <Line
+                  type="monotone"
+                  dataKey="konto"
+                  name="Konto główne"
+                  stroke="rgb(0, 153, 63)"
+                  strokeWidth={3}
+                  dot={false}
+                  activeDot={{ r: 6 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="subkonto"
+                  name="Subkonto"
+                  stroke="rgb(63, 132, 210)"
+                  strokeWidth={3}
+                  dot={false}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -715,6 +815,72 @@ export default function ExportStep({
               </div>
             </div>
           </div>
+
+          {/* Porównanie ze średnią krajową */}
+          <div className="card bg-gradient-to-br from-blue-50 to-white border-2 border-blue-500 mt-6">
+            <h3
+              className="text-lg font-bold text-gray-900 mb-4"
+              style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
+            >
+              Porównanie z średnią krajową
+            </h3>
+            <div style={{ width: "100%", height: "250px" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    {
+                      name: "Twoja emerytura",
+                      value: result.nominalPension,
+                      color: "rgb(0, 153, 63)",
+                    },
+                    {
+                      name: "Średnia krajowa",
+                      value: result.averagePension,
+                      color: "rgb(63, 132, 210)",
+                    },
+                  ]}
+                  margin={{ top: 20, right: 30, left: 70, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ fill: "#374151", fontSize: 12 }}
+                  />
+                  <YAxis
+                    tickFormatter={formatCurrency}
+                    tick={{ fill: "#374151", fontSize: 12 }}
+                    label={{
+                      value: "Emerytura (PLN)",
+                      angle: -90,
+                      position: "center",
+                      dx: -55,
+                      style: { fill: "#6b7280", textAnchor: "middle" },
+                    }}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => formatCurrency(value)}
+                  />
+                  <Legend />
+                  <Bar dataKey="value" name="Kwota emerytury">
+                    {[
+                      {
+                        name: "Twoja emerytura",
+                        value: result.nominalPension,
+                        color: "rgb(0, 153, 63)",
+                      },
+                      {
+                        name: "Średnia krajowa",
+                        value: result.averagePension,
+                        color: "rgb(63, 132, 210)",
+                      },
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         {/* Krok 4: Cel emerytalny (tylko jeśli jest cel) */}
@@ -801,141 +967,100 @@ export default function ExportStep({
 
                 {pathsData.needsSuggestions &&
                   pathsData.suggestions &&
-                  pathsData.suggestions.length > 0 && (
-                    <div className="card bg-blue-50">
-                      <h3
-                        className="font-bold text-lg mb-3"
-                        style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
-                      >
-                        💡 Personalizowane sugestie
-                      </h3>
-                      <div className="space-y-3">
-                        {pathsData.suggestions
-                          .slice(0, 3)
-                          .map((suggestion, index) => (
-                            <div
-                              key={suggestion.id}
-                              className="bg-white p-3 rounded border border-blue-200"
-                            >
-                              <div className="font-bold text-sm mb-1">
-                                {index + 1}. {suggestion.title}
+                  pathsData.suggestions.length > 0 &&
+                  (() => {
+                    // Filtruj tylko sugestie związane z IKE, IKZE i PPK
+                    const investmentSuggestions = pathsData.suggestions.filter(
+                      (s) =>
+                        s.id.includes("ppk") ||
+                        s.id.includes("ike") ||
+                        s.id.includes("ikze") ||
+                        s.title.toLowerCase().includes("ppk") ||
+                        s.title.toLowerCase().includes("ike") ||
+                        s.title.toLowerCase().includes("ikze")
+                    );
+
+                    if (investmentSuggestions.length === 0) return null;
+
+                    return (
+                      <div className="card bg-blue-50">
+                        <h3
+                          className="font-bold text-lg mb-3"
+                          style={{
+                            letterSpacing: "0.5px",
+                            wordSpacing: "2px",
+                          }}
+                        >
+                          💡 Personalizowane sugestie
+                        </h3>
+                        <div className="space-y-3">
+                          {investmentSuggestions
+                            .slice(0, 3)
+                            .map((suggestion, index) => (
+                              <div
+                                key={suggestion.id}
+                                className="bg-white p-3 rounded border border-blue-200"
+                              >
+                                <div className="font-bold text-sm mb-1">
+                                  {index + 1}. {suggestion.title}
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {suggestion.description}
+                                </div>
                               </div>
-                              <div className="text-xs text-gray-600">
-                                {suggestion.description}
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
               </div>
             );
           })()}
 
-        {/* Krok 5: Porównanie scenariuszy */}
-        {(() => {
-          const workScenarios = calculateWorkLongerScenarios(
-            result.nominalPension,
-            input.grossSalary,
-            0,
-            input.desiredPension
-          );
-          const incomeScenarios = calculateExtraIncomeScenarios(
-            result.nominalPension,
-            input.grossSalary,
-            input.desiredPension
-          );
-
-          return (
-            <div
-              id="pdf-step-5"
-              style={{
-                width: "800px",
-                padding: "20px",
-                backgroundColor: "#ffffff",
-                fontFamily: "Arial, sans-serif",
-              }}
-            >
-              <h2
-                className="text-2xl font-bold text-gray-900 mb-4"
-                style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
-              >
-                📊 Porównanie scenariuszy
-              </h2>
-
-              <div className="card bg-green-50 mb-4">
-                <h3
-                  className="font-bold text-lg mb-3"
-                  style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
-                >
-                  ⏰ Dłuższa praca
-                </h3>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-300">
-                      <th className="text-left py-2">Lata</th>
-                      <th className="text-right py-2">Emerytura</th>
-                      <th className="text-right py-2">Wzrost</th>
-                      <th className="text-center py-2">Cel</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {workScenarios.slice(0, 3).map((scenario) => (
-                      <tr
-                        key={scenario.years}
-                        className="border-b border-gray-200"
-                      >
-                        <td className="py-2">+{scenario.years}</td>
-                        <td className="text-right font-semibold">
-                          {formatCurrency(scenario.pension)}
-                        </td>
-                        <td className="text-right text-green-600">
-                          +{scenario.percentageIncrease.toFixed(1)}%
-                        </td>
-                        <td className="text-center">
-                          {scenario.meetsGoal ? "✓" : "-"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="card bg-yellow-50">
-                <h3
-                  className="font-bold text-lg mb-3"
-                  style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
-                >
-                  💼 Dodatkowy dochód
-                </h3>
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-300">
-                      <th className="text-left py-2">Kwota/mies</th>
-                      <th className="text-left py-2">Okres</th>
-                      <th className="text-right py-2">Emerytura</th>
-                      <th className="text-right py-2">Wzrost</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {incomeScenarios.slice(0, 3).map((scenario, idx) => (
-                      <tr key={idx} className="border-b border-gray-200">
-                        <td className="py-2">+{scenario.extraMonthlyIncome}</td>
-                        <td className="py-2">{scenario.durationYears} lat</td>
-                        <td className="text-right font-semibold">
-                          {formatCurrency(scenario.pension)}
-                        </td>
-                        <td className="text-right text-green-600">
-                          +{scenario.percentageIncrease.toFixed(1)}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* Krok 5: Podsumowanie - Twoja emerytura */}
+        <div
+          id="pdf-step-5"
+          style={{
+            width: "800px",
+            padding: "20px",
+            backgroundColor: "#ffffff",
+            fontFamily: "Arial, sans-serif",
+          }}
+        >
+          <h2
+            className="text-2xl font-bold text-gray-900 mb-4"
+            style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
+          >
+            Podsumowanie
+          </h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-white border-2 border-green-500 rounded-lg p-4 text-center shadow-sm">
+              <div className="text-3xl mb-2">💰</div>
+              <div className="text-sm text-gray-600 mb-2">Twoja emerytura</div>
+              <div className="text-2xl font-bold text-green-600">
+                {formatCurrency(result.nominalPension)}
               </div>
             </div>
-          );
-        })()}
+
+            <div className="bg-white border-2 border-blue-500 rounded-lg p-4 text-center shadow-sm">
+              <div className="text-3xl mb-2">📊</div>
+              <div className="text-sm text-gray-600 mb-2">
+                Stopa zastąpienia
+              </div>
+              <div className="text-2xl font-bold text-blue-600">
+                {formatPercent(result.replacementRate)}
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-yellow-500 rounded-lg p-4 text-center shadow-sm">
+              <div className="text-3xl mb-2">📅</div>
+              <div className="text-sm text-gray-600 mb-2">Rok emerytury</div>
+              <div className="text-2xl font-bold text-gray-900">
+                {result.retirementYear}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
