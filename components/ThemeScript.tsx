@@ -5,8 +5,7 @@ export default function ThemeScript() {
       dangerouslySetInnerHTML={{
         __html: `
           (function() {
-            const theme = localStorage.getItem('theme') || 
-              (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            const theme = localStorage.getItem('theme') || 'light';
             if (theme === 'dark') {
               document.documentElement.classList.add('dark');
             }
