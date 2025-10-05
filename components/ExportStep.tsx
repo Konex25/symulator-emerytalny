@@ -430,7 +430,15 @@ export default function ExportStep({
       </div>
 
       {/* UKRYTE KONTENERY DO SCREENSHOTÓW PDF - 1:1 z krokami symulatora */}
-      <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+      {/* <div style={{ position: "absolute", left: "-9999px", top: 0 }}> */}
+      <div
+        style={{
+          position: "fixed",
+          top: "-10000px" /* Moves it far up */,
+          left: 0,
+          zIndex: -1 /* Ensures it is truly behind everything */,
+        }}
+      >
         {/* Krok 1: Dane wejściowe (podsumowanie) */}
         <div
           id="pdf-step-1"
