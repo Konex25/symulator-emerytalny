@@ -144,7 +144,7 @@ Projekt stworzony dla **Zakładu Ubezpieczeń Społecznych (ZUS)** w ramach inic
 
 ```bash
 # Sklonuj repozytorium
-git clone https://github.com/your-username/symulator-emerytalny.git
+git clone https://github.com/Konex25/symulator-emerytalny.git
 
 # Przejdź do katalogu projektu
 cd symulator-emerytalny
@@ -423,20 +423,12 @@ Przyszła wartość = Wpłata × ((1 + r)^n - 1) / r, gdzie r = 5%/12, n = miesi
 
 ---
 
-## 📝 Licencja
-
-**Projekt edukacyjny dla Zakładu Ubezpieczeń Społecznych (ZUS)**
-
-© 2025 ZUS. Wszystkie prawa zastrzeżone.
-
----
-
 ## 👨‍💻 Autor
 
 Projekt stworzony jako demonstracja możliwości nowoczesnych technologii webowych w służbie edukacji społecznej.
 
 **Kontakt:**
-- ZUS: www.zus.pl
+- Konex25: 
 - Email: kontakt@zus.pl
 
 ---
@@ -460,13 +452,57 @@ Projekt stworzony jako demonstracja możliwości nowoczesnych technologii webowy
 
 ---
 
-## 📖 Źródła danych
+## 📐 Założenia metodologiczne
 
-### Wykorzystane dane:
-- **Prognoza ZUS do 2080** - Departament Statystyki i Prognoz Aktuarialnych
-- **GUS** - statystyki demograficzne i wynagrodzenia
-- **NBP** - dane o inflacji
-- **Ministerstwo Finansów** - prognozy makroekonomiczne
+### Dane źródłowe
+
+#### Średnie dalsze trwanie życia
+Dane oparte na oficjalnym [Komunikacie Prezesa Głównego Urzędu Statystycznego z dnia 25 marca 2025 r.](https://docs.google.com/spreadsheets/d/1176TNP84_96-s4CE4Np733vnV9mTuiYzJLs7-jHc_fY/edit?gid=359762130#gid=359762130) w sprawie tablicy średniego dalszego trwania życia kobiet i mężczyzn (Monitor Polski z 28 marca 2025 r. poz. 279).
+
+#### Waloryzacja składek
+Parametry waloryzacji oparte na [danych ZUS](https://docs.google.com/spreadsheets/d/1js0Q46xggOyDawdYYyr2iDPVADuFLkg95Yr-gYgpmWw/edit?gid=1303893553#gid=1303893553). Waloryzacja uproszczona z kwartalnej na **roczną** dla celów edukacyjnych.
+
+---
+
+### Parametry obliczeń
+
+#### 💰 Składki emerytalne
+- **Konto główne ZUS:** 12,22% wynagrodzenia brutto
+- **Subkonto ZUS:** 7,3% wynagrodzenia brutto (indeksowane wzrostem PKB)
+- **Suma składek:** 19,52% wynagrodzenia brutto
+
+#### 📈 Wzrost wynagrodzeń
+Jeśli użytkownik nie poda indywidualnych przychodów miesięcznych dla poszczególnych lat:
+- **Domyślny wzrost:** 4% rocznie
+- Założenie oparte na średnim wzroście wynagrodzeń w Polsce
+
+#### 💹 Inflacja
+- **Stopa inflacji:** 2,5% rocznie
+- Wykorzystywana do obliczania emerytury realnej (siła nabywcza)
+#### 🏢 PPK (Pracownicze Plany Kapitałowe)
+- **Wpłata pracownika:** 2% wynagrodzenia brutto
+- **Wpłata pracodawcy:** 1,5% wynagrodzenia brutto
+- **Suma:** 3,5% wynagrodzenia brutto
+
+#### 💼 IKE (Indywidualne Konto Emerytalne)
+- **Roczny limit 2025:** 26 019 zł (2 168 zł/miesiąc)
+- **Korzyść podatkowa:** Zwolnienie z 19% podatku od zysków kapitałowych po 60. roku życia
+
+#### 📊 IKZE (Indywidualne Konto Zabezpieczenia Emerytalnego)
+- **Roczny limit 2025:** 10 408 zł (867 zł/miesiąc)
+- **Roczny limit dla przedsiębiorców:** 15 611 zł
+- **Ulga podatkowa:** 12% lub 32% (w zależności od progu podatkowego)
+- **Podatek przy wypłacie:** 10% po 65. roku życia
+### Uproszczenia metodologiczne
+
+> ⚠️ **Uwaga:** Symulator wykorzystuje uproszczenia metodologiczne dla celów edukacyjnych. Rzeczywiste obliczenia ZUS mogą być bardziej złożone i uwzględniać dodatkowe czynniki.
+
+**Główne uproszczenia:**
+1. Waloryzacja roczna zamiast kwartalnej
+2. Stały wzrost wynagrodzeń (4% rocznie)
+3. Stała inflacja (2% rocznie)
+4. Brak uwzględnienia zmian legislacyjnych w przyszłości
+5. Brak uwzględnienia luk w zatrudnieniu (poza zwolnieniami lekarskimi)
 
 ### Źródła edukacyjne:
 - Ustawa o emeryturach i rentach z FUS
