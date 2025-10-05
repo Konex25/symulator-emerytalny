@@ -689,6 +689,102 @@ export default function ExportStep({
               </div>
             </div>
           </div>
+
+          {/* Porównanie ze średnią krajową */}
+          <div className="card bg-gradient-to-br from-blue-50 to-white border-l-4 border-blue-500 mt-6">
+            <h3
+              className="font-bold text-lg mb-4"
+              style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
+            >
+              📊 Porównanie z średnią krajową
+            </h3>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="text-center">
+                <div className="text-sm text-gray-600 mb-2">
+                  Twoja emerytura
+                </div>
+                <div className="text-3xl font-bold text-green-600">
+                  {formatCurrency(result.nominalPension)}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-gray-600 mb-2">
+                  Średnia krajowa
+                </div>
+                <div className="text-3xl font-bold text-blue-600">
+                  {formatCurrency(result.averagePension)}
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 text-center text-sm">
+              {result.nominalPension > result.averagePension ? (
+                <div className="text-green-600 font-semibold">
+                  ✓ Twoja emerytura jest wyższa od średniej o{" "}
+                  {formatCurrency(
+                    result.nominalPension - result.averagePension
+                  )}
+                </div>
+              ) : (
+                <div className="text-orange-600 font-semibold">
+                  Twoja emerytura jest niższa od średniej o{" "}
+                  {formatCurrency(
+                    result.averagePension - result.nominalPension
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Wpływ zwolnień lekarskich */}
+          {result.sickLeaveImpact && (
+            <div className="card bg-gradient-to-br from-red-50 to-white border-l-4 border-red-500 mt-6">
+              <h3
+                className="font-bold text-lg mb-4"
+                style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
+              >
+                🏥 Wpływ zwolnień lekarskich
+              </h3>
+              <p className="text-sm text-gray-700 mb-3">
+                Uwzględniliśmy średnią liczbę dni zwolnienia lekarskiego:{" "}
+                <span className="font-semibold">
+                  {input.sex === "male"
+                    ? "12 dni/rok (mężczyźni)"
+                    : "16 dni/rok (kobiety)"}
+                </span>
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-3 rounded border border-red-200">
+                  <div className="text-xs text-gray-600 mb-1">
+                    Strata w emeryturze:
+                  </div>
+                  <div className="text-2xl font-bold text-red-600">
+                    {formatCurrency(result.sickLeaveImpact.difference)}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">miesięcznie</div>
+                </div>
+                <div className="bg-white p-3 rounded border border-red-200">
+                  <div className="text-xs text-gray-600 mb-1">
+                    Procent zmniejszenia:
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {(
+                      (result.sickLeaveImpact.difference /
+                        result.nominalPension) *
+                      100
+                    ).toFixed(1)}
+                    %
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    całkowitej emerytury
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mt-3">
+                💡 Podczas zwolnienia lekarskiego składki emerytalne są niższe
+                (80% podstawy), co wpływa na wysokość przyszłej emerytury.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Krok 4: Cel emerytalny (tylko jeśli jest cel) */}
@@ -875,7 +971,7 @@ export default function ExportStep({
                 </table>
               </div>
 
-              <div className="card bg-yellow-50">
+              <div className="card bg-yellow-50 mb-4">
                 <h3
                   className="font-bold text-lg mb-3"
                   style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
@@ -907,6 +1003,112 @@ export default function ExportStep({
                   </tbody>
                 </table>
               </div>
+
+              {/* Kalkulator Nadgodzin */}
+              {(() => {
+                const retirementAge = RETIREMENT_AGE[input.sex];
+                const yearsUntilRetirement = Math.max(0, retirementAge - input.age);
+                const overtimeHours = 10;
+                const overtimeRate = 1.5;
+                const hourlyRate = input.grossSalary / 168;
+                const overtimeIncome = hourlyRate * overtimeHours * overtimeRate;
+                const monthsUntilRetirement = yearsUntilRetirement * 12;
+                const monthlyRate = 0.05 / 12;
+                const additionalContributions = overtimeIncome * 0.1952;
+                const futureValue =
+                  additionalContributions *
+                  ((Math.pow(1 + monthlyRate, monthsUntilRetirement) - 1) /
+                    monthlyRate);
+                const additionalMonthlyPension = futureValue / (25 * 12);
+
+                return (
+                  <div className="card bg-gradient-to-br from-orange-50 to-white border-l-4 border-orange-500">
+                    <h3
+                      className="font-bold text-lg mb-3"
+                      style={{ letterSpacing: "0.5px", wordSpacing: "2px" }}
+                    >
+                      ⏱️ Kalkulator Nadgodzin
+                    </h3>
+                    <p className="text-xs text-gray-600 mb-3">
+                      Wpływ dodatkowych godzin pracy na przyszłą emeryturę
+                    </p>
+
+                    <div className="bg-white p-3 rounded border border-orange-200 mb-3">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <div className="text-gray-600 text-xs mb-1">
+                            Nadgodziny miesięcznie:
+                          </div>
+                          <div className="text-lg font-bold text-orange-600">
+                            {overtimeHours} godz.
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600 text-xs mb-1">
+                            Stawka nadgodzin:
+                          </div>
+                          <div className="text-lg font-bold text-orange-600">
+                            150%
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600 text-xs mb-1">
+                            Dodatkowy dochód/mies:
+                          </div>
+                          <div className="text-lg font-bold text-green-600">
+                            {formatCurrency(Math.round(overtimeIncome))}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600 text-xs mb-1">
+                            Dodatkowa składka ZUS:
+                          </div>
+                          <div className="text-lg font-bold text-blue-600">
+                            {formatCurrency(Math.round(additionalContributions))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 p-3 rounded border-2 border-green-300">
+                      <h4 className="font-bold text-gray-900 text-sm mb-2">
+                        📊 Wpływ na emeryturę
+                      </h4>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Okres do emerytury:</span>
+                          <span className="font-bold">
+                            {yearsUntilRetirement} lat
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">
+                            Łączny dodatkowy dochód:
+                          </span>
+                          <span className="font-bold text-green-600">
+                            {formatCurrency(
+                              Math.round(overtimeIncome * monthsUntilRetirement)
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+                          <span className="text-gray-700">
+                            Dodatkowa emerytura miesięcznie:
+                          </span>
+                          <span className="text-lg font-bold text-green-600">
+                            +{formatCurrency(Math.round(additionalMonthlyPension))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                      <strong>💡</strong> Kalkulacja zakłada 10 godz. nadgodzin/mies
+                      przez cały okres do emerytury (150% stawki).
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           );
         })()}
