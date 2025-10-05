@@ -197,13 +197,13 @@ export default function LandingScreen({
 
       {/* Sekcja "Czy wiesz, że..." */}
       <section className="relative overflow-hidden">
-        <div className="card bg-gradient-to-br from-zus-gold/20 via-white to-zus-blue/10 border-2 border-zus-gold">
+        <div className="card bg-white dark:bg-gray-800 border-2 border-zus-gold dark:border-zus-gold">
           <div className="flex items-start gap-4">
             <div className="text-5xl flex-shrink-0" aria-hidden="true">
               💡
             </div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold text-zus-darkblue mb-3">
+              <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-3">
                 Czy wiesz, że...
               </h3>
               {funFact ? (
@@ -242,20 +242,20 @@ export default function LandingScreen({
 
       {/* Statystyki ZUS - dodatkowa sekcja informacyjna */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card text-center bg-gradient-to-br from-zus-green/5 to-white">
+        <div className="card text-center bg-white dark:bg-gray-800">
           <div className="text-4xl mb-3">👥</div>
-          <p className="text-3xl font-bold text-zus-green mb-2">9 mln+</p>
-          <p className="text-sm text-gray-600">Emerytów i rencistów w Polsce</p>
+          <p className="text-3xl font-bold text-zus-green dark:text-zus-gold mb-2">9 mln+</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Emerytów i rencistów w Polsce</p>
         </div>
-        <div className="card text-center bg-gradient-to-br from-zus-blue/5 to-white">
+        <div className="card text-center bg-white dark:bg-gray-800">
           <div className="text-4xl mb-3">📈</div>
-          <p className="text-3xl font-bold text-zus-blue mb-2">35 lat</p>
-          <p className="text-sm text-gray-600">Średni staż pracy w Polsce</p>
+          <p className="text-3xl font-bold text-zus-blue dark:text-zus-gold mb-2">35 lat</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Średni staż pracy w Polsce</p>
         </div>
-        <div className="card text-center bg-gradient-to-br from-zus-gold/5 to-white">
+        <div className="card text-center bg-white dark:bg-gray-800">
           <div className="text-4xl mb-3">💰</div>
-          <p className="text-3xl font-bold text-zus-darkblue mb-2">60%</p>
-          <p className="text-sm text-gray-600">Średnia stopa zastąpienia</p>
+          <p className="text-3xl font-bold text-zus-darkblue dark:text-white mb-2">60%</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Średnia stopa zastąpienia</p>
         </div>
       </section>
     </div>

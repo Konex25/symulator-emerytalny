@@ -223,6 +223,149 @@ export default function ExportStep({
         </div>
       </div>
 
+      {/* Educational resources */}
+      <div className="card bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 border-l-4 border-blue-500">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="text-4xl">📚</div>
+          <div>
+            <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-1">
+              Dowiedz się więcej o oszczędzaniu
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Przydatne zasoby edukacyjne do planowania finansowego
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* ZUS.pl */}
+          <a
+            href="https://www.zus.pl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card bg-white dark:bg-gray-700 hover:shadow-lg transition-all hover:scale-105 border-2 border-transparent hover:border-zus-green"
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-3">🏛️</div>
+              <h4 className="font-bold text-lg text-zus-darkblue dark:text-white mb-2">
+                Portal ZUS
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Oficjalna strona Zakładu Ubezpieczeń Społecznych - wszystko o emeryturach
+              </p>
+              <span className="text-xs text-zus-green dark:text-zus-gold font-semibold">
+                Odwiedź →
+              </span>
+            </div>
+          </a>
+
+          {/* Gov.pl PPK */}
+          <a
+            href="https://www.mojeppk.pl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card bg-white dark:bg-gray-700 hover:shadow-lg transition-all hover:scale-105 border-2 border-transparent hover:border-zus-blue"
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-3">💼</div>
+              <h4 className="font-bold text-lg text-zus-darkblue dark:text-white mb-2">
+                Pracownicze Plany Kapitałowe
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Wszystko o PPK - jak działa i jakie daje korzyści
+              </p>
+              <span className="text-xs text-zus-blue dark:text-zus-gold font-semibold">
+                Odwiedź →
+              </span>
+            </div>
+          </a>
+
+          {/* KNF */}
+          <a
+            href="https://www.knf.gov.pl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card bg-white dark:bg-gray-700 hover:shadow-lg transition-all hover:scale-105 border-2 border-transparent hover:border-purple-500"
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-3">📊</div>
+              <h4 className="font-bold text-lg text-zus-darkblue dark:text-white mb-2">
+                Komisja Nadzoru Finansowego
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Edukacja finansowa, inwestycje i oszczędzanie
+              </p>
+              <span className="text-xs text-purple-600 dark:text-zus-gold font-semibold">
+                Odwiedź →
+              </span>
+            </div>
+          </a>
+
+          {/* ZBP */}
+          <a
+            href="https://zbp.pl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card bg-white dark:bg-gray-700 hover:shadow-lg transition-all hover:scale-105 border-2 border-transparent hover:border-orange-500"
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-3">🎓</div>
+              <h4 className="font-bold text-lg text-zus-darkblue dark:text-white mb-2">
+                Związek Banków Polskich
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Edukacja finansowa i programy oszczędnościowe
+              </p>
+              <span className="text-xs text-orange-600 dark:text-zus-gold font-semibold">
+                Odwiedź →
+              </span>
+            </div>
+          </a>
+
+          {/* Gov.pl */}
+          <a
+            href="https://www.gov.pl/web/finanse"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card bg-white dark:bg-gray-700 hover:shadow-lg transition-all hover:scale-105 border-2 border-transparent hover:border-green-500"
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-3">📈</div>
+              <h4 className="font-bold text-lg text-zus-darkblue dark:text-white mb-2">
+                Ministerstwo Finansów
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Informacje o IKE, IKZE i dodatkowych oszczędnościach emerytalnych
+              </p>
+              <span className="text-xs text-green-600 dark:text-zus-gold font-semibold">
+                Odwiedź →
+              </span>
+            </div>
+          </a>
+
+          {/* NBP */}
+          <a
+            href="https://www.nbportal.pl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="card bg-white dark:bg-gray-700 hover:shadow-lg transition-all hover:scale-105 border-2 border-transparent hover:border-yellow-500"
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-3">💰</div>
+              <h4 className="font-bold text-lg text-zus-darkblue dark:text-white mb-2">
+                Portal Edukacji Finansowej NBP
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                Edukacja ekonomiczna Narodowego Banku Polskiego
+              </p>
+              <span className="text-xs text-yellow-600 dark:text-zus-gold font-semibold">
+                Odwiedź →
+              </span>
+            </div>
+          </a>
+        </div>
+      </div>
+
       {/* Thank you card */}
       <div className="card bg-gradient-to-r from-zus-green to-zus-blue text-white border-0 shadow-xl">
         <div className="text-center">

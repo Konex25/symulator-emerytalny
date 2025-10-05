@@ -19,7 +19,7 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className="bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative">
+      <body className="bg-gray-50 dark:bg-gray-900 transition-colors duration-300 relative flex flex-col min-h-screen">
         {/* Floating background circles */}
         <div className="floating-bg">
           <div className="floating-circle floating-circle-1" />
@@ -29,11 +29,11 @@ export default function RootLayout({
         
         <Header />
         
-        <main className="min-h-screen">
+        <main className="flex-1">
           {children}
         </main>
         
-        <footer className="bg-zus-darkblue dark:bg-black text-white py-8 mt-16 transition-colors duration-300">
+        <footer className="bg-zus-green text-white py-8 mt-auto">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>

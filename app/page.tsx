@@ -28,11 +28,10 @@ const STEPS: Step[] = [
   },
   {
     id: 2,
-    title: 'Szczegóły (opcjonalnie)',
+    title: 'Szczegóły',
     shortTitle: 'Detale',
     description: 'Dostosuj zaawansowane parametry',
     icon: '🔧',
-    optional: true,
   },
   {
     id: 3,
@@ -245,16 +244,14 @@ export default function Home() {
         </div>
       </StepContainer>
 
-      {/* STEP 2: Advanced Options (Optional) */}
+      {/* STEP 2: Advanced Options */}
       <StepContainer
         stepNumber={2}
         title="Doprecyzuj swoje dane"
-        description="Opcjonalnie: dostosuj zaawansowane parametry"
+        description="Dostosuj zaawansowane parametry"
         isActive={currentStep === 2}
         onNext={nextStep}
         onPrev={prevStep}
-        onSkip={skipStep}
-        canSkip={true}
       >
         {result && inputData && (
           <AdvancedDashboard
