@@ -250,7 +250,6 @@ export default function ExportStep({
             <li>📊 Screenshot prognozy z kartami i tabelami (Krok 3)</li>
             <li>🎯 Screenshot analizy celu i sugestii (Krok 4)</li>
             <li>📊 Screenshot porównania scenariuszy (Krok 5)</li>
-            <li>✨ PDF wygląda dokładnie jak w aplikacji!</li>
           </ul>
         </div>
       </div>
