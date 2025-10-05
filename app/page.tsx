@@ -13,6 +13,7 @@ import ScenarioComparer from '@/components/ScenarioComparer';
 import WhatIfCalculator from '@/components/WhatIfCalculator';
 import OvertimeCalculator from '@/components/OvertimeCalculator';
 import ExportStep from '@/components/ExportStep';
+import InfoTooltip from '@/components/InfoTooltip';
 import type { SimulationResult, SimulationInput } from '@/types';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
@@ -279,8 +280,12 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="card bg-gradient-to-br from-zus-green/5 to-white dark:from-zus-green/10 dark:to-gray-800 border-2 border-zus-green">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-zus-darkblue dark:text-white">
+                  <h3 className="text-xl font-semibold text-zus-darkblue dark:text-white flex items-center">
                     Emerytura Nominalna
+                    <InfoTooltip
+                      title="Emerytura Nominalna"
+                      description="To kwota emerytury wyrażona w przyszłych złotówkach, bez uwzględnienia inflacji. Pokazuje ile pieniędzy będziesz dostawać co miesiąc po przejściu na emeryturę."
+                    />
                   </h3>
                   <svg
                     className="w-8 h-8 text-zus-green"
@@ -304,8 +309,12 @@ export default function Home() {
 
               <div className="card bg-gradient-to-br from-zus-blue/5 to-white dark:from-zus-blue/10 dark:to-gray-800 border-2 border-zus-blue">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-semibold text-zus-darkblue dark:text-white">
+                  <h3 className="text-xl font-semibold text-zus-darkblue dark:text-white flex items-center">
                     Emerytura Realna
+                    <InfoTooltip
+                      title="Emerytura Realna"
+                      description="To kwota emerytury przeliczona na dzisiejszą siłę nabywczą. Uwzględnia inflację, więc pokazuje ile będziesz mógł/mogła faktycznie kupić za swoją emeryturę."
+                    />
                   </h3>
                   <svg
                     className="w-8 h-8 text-zus-blue"
@@ -331,8 +340,12 @@ export default function Home() {
 
             {/* Replacement rate */}
             <div className="card bg-gradient-to-br from-zus-gold/5 to-white dark:from-zus-gold/10 dark:to-gray-800 border-2 border-zus-gold">
-              <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-4">
+              <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-4 flex items-center">
                 Stopa zastąpienia
+                <InfoTooltip
+                  title="Stopa zastąpienia"
+                  description="To stosunek Twojej emerytury do ostatniego wynagrodzenia przed emeryturą. Im wyższa stopa, tym lepiej - oznacza, że emerytura będzie bliższa Twoim zarobkom. Eksperci zalecają min. 60%."
+                />
               </h3>
               <div className="flex items-center gap-4 mb-4">
                 <p className="text-5xl font-bold text-zus-gold">
@@ -732,8 +745,12 @@ export default function Home() {
             {/* Sick leave impact */}
             {result.sickLeaveImpact && (
               <div className="card bg-gradient-to-br from-zus-red/5 to-white dark:from-zus-red/10 dark:to-gray-800 border-l-4 border-zus-red">
-                <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-4">
+                <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-4 flex items-center">
                   Wpływ zwolnień lekarskich
+                  <InfoTooltip
+                    title="Wpływ zwolnień lekarskich"
+                    description="Podczas zwolnienia lekarskiego składki na emeryturę są opłacane tylko od 80% podstawy wymiaru zasiłku. To oznacza, że każdy dzień zwolnienia zmniejsza Twoje przyszłe świadczenie emerytalne."
+                  />
                 </h3>
                 <div className="flex items-start gap-4">
                   <div className="text-4xl">🏥</div>

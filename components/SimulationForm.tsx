@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { simulationFormSchema, calculateDefaultWorkEndYear, type SimulationFormData } from '@/lib/validationSchema';
 import type { SimulationResult, SimulationInput } from '@/types';
+import InfoTooltip from './InfoTooltip';
 import {
   RETIREMENT_AGE,
   MINIMUM_PENSION,
@@ -397,8 +398,16 @@ export default function SimulationForm({
 
         {/* Środki na koncie ZUS */}
         <div>
-          <label htmlFor="zusAccount" className="label">
+          <label htmlFor="zusAccount" className="label flex items-center">
             Środki zgromadzone na koncie ZUS (PLN)
+            <InfoTooltip
+              title="Konto ZUS"
+              description="To środki zebrane z Twoich składek emerytalnych (12,22% wynagrodzenia brutto trafia na konto główne). Możesz sprawdzić stan swojego konta logując się na PUE ZUS."
+              link={{
+                url: "https://www.zus.pl/baza-wiedzy/rachunki-emerytalne/rachunki-w-zus/moje-konto-w-zus-jak-sprawdzic-stan-konta",
+                text: "Sprawdź w PUE ZUS →"
+              }}
+            />
           </label>
           <input
             id="zusAccount"
@@ -431,8 +440,16 @@ export default function SimulationForm({
 
         {/* Środki na subkoncie ZUS */}
         <div>
-          <label htmlFor="zusSubAccount" className="label">
+          <label htmlFor="zusSubAccount" className="label flex items-center">
             Środki zgromadzone na subkoncie ZUS (PLN)
+            <InfoTooltip
+              title="Subkonto ZUS"
+              description="To 7,3% Twojej składki emerytalnej zapisywane na specjalnym subkoncie. Subkonto jest indeksowane stopą wzrostu PKB. Stan subkonta znajdziesz w PUE ZUS."
+              link={{
+                url: "https://www.zus.pl/baza-wiedzy/rachunki-emerytalne/rachunki-w-zus/moje-konto-w-zus-jak-sprawdzic-stan-konta",
+                text: "Sprawdź w PUE ZUS →"
+              }}
+            />
           </label>
           <input
             id="zusSubAccount"
@@ -463,8 +480,16 @@ export default function SimulationForm({
 
         {/* Kwota zwaloryzowanego kapitału początkowego */}
         <div>
-          <label htmlFor="startCapital" className="label">
+          <label htmlFor="startCapital" className="label flex items-center">
             Kwota zwaloryzowanego kapitału początkowego (PLN)
+            <InfoTooltip
+              title="Kapitał początkowy"
+              description="To składki zgromadzone przed 1999 rokiem (stary system emerytalny), które zostały przeliczone na nowy system. Dotyczy osób urodzonych przed 1949 rokiem."
+              link={{
+                url: "https://www.gov.pl/web/gov/ustal-swoj-kapital-poczatkowy",
+                text: "Więcej o kapitale początkowym →"
+              }}
+            />
           </label>
           <input
             id="startCapital"
@@ -501,8 +526,16 @@ export default function SimulationForm({
 
         {/* Środki zgromadzone na rachunku OFE */}
         <div>
-          <label htmlFor="ofeAccount" className="label">
+          <label htmlFor="ofeAccount" className="label flex items-center">
             Środki zgromadzone na rachunku OFE (PLN)
+            <InfoTooltip
+              title="Środki OFE"
+              description="Otwarty Fundusz Emerytalny - część składki emerytalnej była przekazywana do prywatnych funduszy. Od 2014 można zdecydować, czy pozostać w OFE czy wrócić do ZUS."
+              link={{
+                url: "https://www.gov.pl/web/finanse/fundusze-emerytalne-rynek-finansowy-i-dlugoterminowe-produkty-oszczednosciowe",
+                text: "Więcej o OFE →"
+              }}
+            />
           </label>
           <input
             id="ofeAccount"
