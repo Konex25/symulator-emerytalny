@@ -154,9 +154,6 @@ function applyAnnualValorization(
       valorizedAmount *= valorizationParams.accountIndexation;
     } else {
       // Fallback: use average inflation for years without valorization data
-      console.warn(
-        `No valorization data found for year ${year}, using average inflation`
-      );
       valorizedAmount *= 1 + ECONOMIC_INDICATORS.averageInflation;
     }
   }
@@ -184,9 +181,6 @@ function applySubAccountAnnualValorization(
       valorizedAmount *= valorizationParams.subAccountIndexation;
     } else {
       // Fallback: use average inflation for years without valorization data
-      console.warn(
-        `No valorization data found for year ${year}, using average inflation`
-      );
       valorizedAmount *= 1 + ECONOMIC_INDICATORS.averageInflation;
     }
   }

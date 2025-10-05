@@ -412,86 +412,210 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Work longer scenarios */}
-            <div className="card bg-gradient-to-br from-zus-green/5 to-white dark:from-zus-green/10 dark:to-gray-800 border-2 border-zus-green">
+            {/* Investment Options - PPK/IKE/IKZE */}
+            <div className="card bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-gray-800 border-l-4 border-purple-500">
               <h3 className="text-2xl font-bold text-zus-darkblue dark:text-white mb-4">
-                Co jeśli popracujesz dłużej?
+                💰 Zainwestuj w swoją przyszłość
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                Każdy dodatkowy rok pracy może znacząco zwiększyć Twoją przyszłą
-                emeryturę.
+                Oprócz emerytury z ZUS, możesz budować dodatkowe zabezpieczenie
+                emerytalne. Oto najpopularniejsze opcje:
               </p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left table-auto">
-                  <thead>
-                    <tr className="bg-gray-50 dark:bg-gray-700">
-                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Scenariusz
-                      </th>
-                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Wiek
-                      </th>
-                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Emerytura
-                      </th>
-                      <th className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Wzrost
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      {
-                        label: "Obecnie",
-                        years: 0,
-                        pension: result.nominalPension,
-                      },
-                      {
-                        label: "Za 1 rok",
-                        years: 1,
-                        pension:
-                          result.laterRetirementScenarios?.plusOneYear ||
-                          result.nominalPension,
-                      },
-                      {
-                        label: "Za 2 lata",
-                        years: 2,
-                        pension:
-                          result.laterRetirementScenarios?.plusTwoYears ||
-                          result.nominalPension,
-                      },
-                      {
-                        label: "Za 5 lat",
-                        years: 5,
-                        pension:
-                          result.laterRetirementScenarios?.plusFiveYears ||
-                          result.nominalPension,
-                      },
-                    ].map((scenario, index) => (
-                      <tr
-                        key={index}
-                        className="border-b border-gray-200 dark:border-gray-700 last:border-b-0"
-                      >
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-100">
-                          {scenario.label}
-                        </td>
-                        <td className="px-4 py-3 text-gray-800 dark:text-gray-100">
-                          {inputData.age + scenario.years} lat
-                        </td>
-                        <td className="px-4 py-3 font-semibold text-zus-green dark:text-zus-gold">
-                          {formatCurrency(scenario.pension)}
-                        </td>
-                        <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                          {index > 0
-                            ? `+${formatCurrency(
-                                scenario.pension - result.nominalPension
-                              )}`
-                            : "-"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* PPK */}
+                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border-2 border-blue-300 dark:border-blue-600 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="text-center mb-3">
+                    <div className="text-4xl mb-2">🏢</div>
+                    <div className="font-bold text-lg text-blue-700 dark:text-blue-400">
+                      PPK
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Pracownicze Plany Kapitałowe
+                    </div>
+                  </div>
+                  <div className="text-sm space-y-2 text-gray-700 dark:text-gray-300">
+                    <div className="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                      <span>Twoja wpłata:</span>
+                      <span className="font-semibold">2%</span>
+                    </div>
+                    <div className="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                      <span>Pracodawca:</span>
+                      <span className="font-semibold">1.5%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Razem:</span>
+                      <span className="font-bold text-blue-700 dark:text-blue-400">
+                        3.5%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Szacunkowa wartość*
+                    </div>
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {(() => {
+                        const years = Math.max(
+                          1,
+                          RETIREMENT_AGE[inputData.sex] - inputData.age
+                        );
+                        const monthlyContribution =
+                          inputData.grossSalary * 0.035;
+                        const annualRate = 0.05;
+                        const monthlyRate = annualRate / 12;
+                        const months = years * 12;
+                        const futureValue =
+                          monthlyContribution *
+                          ((Math.pow(1 + monthlyRate, months) - 1) /
+                            monthlyRate);
+                        return formatCurrency(Math.round(futureValue));
+                      })()}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      przy wpłacie 3.5% wynagrodzenia
+                    </div>
+                  </div>
+                </div>
+
+                {/* IKE */}
+                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border-2 border-green-300 dark:border-green-600 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="text-center mb-3">
+                    <div className="text-4xl mb-2">💼</div>
+                    <div className="font-bold text-lg text-green-700 dark:text-green-400">
+                      IKE
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Indywidualne Konto Emerytalne
+                    </div>
+                  </div>
+                  <div className="text-sm space-y-2 text-gray-700 dark:text-gray-300">
+                    <div className="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                      <span>Limit 2025:</span>
+                      <span className="font-semibold">26 019 zł</span>
+                    </div>
+                    <div className="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                      <span>Korzyść:</span>
+                      <span className="font-semibold text-green-700 dark:text-green-400">
+                        0% podatku
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>od zysków</span>
+                      <span className="font-bold text-green-700 dark:text-green-400">
+                        ✓
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 italic">
+                    ** Po 60. roku życia wypłata bez podatku od zysków
+                    kapitałowych (19%)
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Szacunkowa wartość*
+                    </div>
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {(() => {
+                        const years = Math.max(
+                          1,
+                          RETIREMENT_AGE[inputData.sex] - inputData.age
+                        );
+                        const annualContribution = 26019;
+                        const annualRate = 0.05;
+                        const futureValue =
+                          annualContribution *
+                          ((Math.pow(1 + annualRate, years) - 1) / annualRate);
+                        return formatCurrency(Math.round(futureValue));
+                      })()}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      przy maksymalnych wpłatach (26 019 zł/rok)
+                    </div>
+                  </div>
+                </div>
+
+                {/* IKZE */}
+                <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border-2 border-yellow-300 dark:border-yellow-600 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="text-center mb-3">
+                    <div className="text-4xl mb-2">📈</div>
+                    <div className="font-bold text-lg text-yellow-700 dark:text-yellow-400">
+                      IKZE
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Indywidualne Konto Zabezpieczenia Emerytalnego
+                    </div>
+                  </div>
+                  <div className="text-sm space-y-2 text-gray-700 dark:text-gray-300">
+                    <div className="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                      <span>Limit 2025:</span>
+                      <span className="font-semibold">10 408 zł</span>
+                    </div>
+                    <div className="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                      <span className="text-xs">(przedsiębiorca:</span>
+                      <span className="font-semibold text-xs">15 611 zł)</span>
+                    </div>
+                    <div className="flex justify-between border-b border-gray-200 dark:border-gray-600 pb-2">
+                      <span>Odliczenie:</span>
+                      <span className="font-semibold text-yellow-700 dark:text-yellow-400">
+                        od PIT
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Zwrot podatku:</span>
+                      <span className="font-bold text-yellow-700 dark:text-yellow-400">
+                        1 249 - 3 330 zł
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-500 dark:text-gray-400">
+                        (przedsiębiorca:
+                      </span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        1 873 - 4 996 zł)
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-400 italic">
+                    ** Wpłaty odlicza się od dochodu (zwrot zależy od progu: 12%
+                    lub 32%). Po 65. roku życia wypłata z 10% podatkiem
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      Szacunkowa wartość*
+                    </div>
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {(() => {
+                        const years = Math.max(
+                          1,
+                          RETIREMENT_AGE[inputData.sex] - inputData.age
+                        );
+                        const annualContribution = 10408;
+                        const annualRate = 0.05;
+                        const futureValue =
+                          annualContribution *
+                          ((Math.pow(1 + annualRate, years) - 1) / annualRate);
+                        return formatCurrency(Math.round(futureValue));
+                      })()}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      przy maksymalnych wpłatach (10 408 zł/rok)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <strong>💡 Dlaczego warto?</strong> Systematyczne inwestowanie
+                  w dodatkowe instrumenty emerytalne może znacząco zwiększyć
+                  Twoją przyszłą emeryturę dzięki efektowi procentu składanego.
+                </p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                  * Szacunki używają wzoru na procent składany przy założeniu 5%
+                  rocznej stopy zwrotu. To konserwatywne założenie - historyczne
+                  średnie funduszy emerytalnych wynoszą 6-8% rocznie.
+                </p>
               </div>
             </div>
 
@@ -623,7 +747,10 @@ export default function Home() {
             <OvertimeCalculator
               currentPension={result.nominalPension}
               monthlySalary={inputData.grossSalary}
-              yearsUntilRetirement={Math.max(0, inputData.workEndYear - new Date().getFullYear())}
+              yearsUntilRetirement={Math.max(
+                0,
+                inputData.workEndYear - new Date().getFullYear()
+              )}
             />
           </div>
         )}
