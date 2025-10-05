@@ -5,7 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
 import { simulationFormSchema, calculateDefaultWorkEndYear, type SimulationFormData } from '@/lib/validationSchema';
 import type { SimulationResult, SimulationInput } from '@/types';
-import { RETIREMENT_AGE, MINIMUM_PENSION } from "@/lib/constants";
+import {
+  RETIREMENT_AGE,
+  MINIMUM_PENSION,
+  CONTRIBUTION_BASE_LIMIT,
+} from "@/lib/constants";
 
 interface SimulationFormProps {
   onSuccess?: (result: SimulationResult, input: SimulationInput) => void;
@@ -40,6 +44,7 @@ export default function SimulationForm({
   // Obserwuj zmiany wieku i płci aby automatycznie ustawić rok zakończenia pracy
   const watchAge = watch("age");
   const watchSex = watch("sex");
+  const watchGrossSalary = watch("grossSalary");
 
   useEffect(() => {
     if (watchAge && watchSex) {
@@ -69,10 +74,10 @@ export default function SimulationForm({
     setValue("ofeAccount", 0);
     setValue("desiredPension", 5000);
     setValue("includeSickLeave", true);
-    
+
     // Trigger walidacji aby odblokować przycisk
     trigger();
-    
+
     // Jeśli jest callback dla desiredPension, wywołaj go
     if (onDesiredPensionChange) {
       onDesiredPensionChange(5000);
@@ -287,6 +292,31 @@ export default function SimulationForm({
               💡 Symulator zakłada 4% roczny wzrost wynagrodzeń
             </span>
           </p>
+          {watchGrossSalary &&
+            watchGrossSalary > CONTRIBUTION_BASE_LIMIT.monthlyLimit && (
+              <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <span className="text-yellow-600 dark:text-yellow-400 text-lg">
+                    ⚠️
+                  </span>
+                  <div className="text-sm text-yellow-800 dark:text-yellow-300">
+                    <p className="font-semibold mb-1">
+                      Limit podstawy wymiaru składek
+                    </p>
+                    <p className="text-xs">
+                      Twoje wynagrodzenie przekracza miesięczny limit{" "}
+                      <strong>
+                        {CONTRIBUTION_BASE_LIMIT.monthlyLimit.toLocaleString()}{" "}
+                        zł
+                      </strong>{" "}
+                      (30-krotność przeciętnego wynagrodzenia). Składki
+                      emerytalne będą naliczane tylko od tej maksymalnej kwoty,
+                      nie od całego wynagrodzenia.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
         </div>
 
         {/* Rok rozpoczęcia pracy */}

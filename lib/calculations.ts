@@ -9,6 +9,7 @@ import {
   SICK_LEAVE_AVERAGES,
   AVERAGE_PENSIONS,
   MONTHLY_CONTRIBUTIONS,
+  CONTRIBUTION_BASE_LIMIT,
 } from "./constants";
 import type { SimulationInput, SimulationResult } from "@/types";
 import { calculateActualRetirementAge } from "./validationSchema";
@@ -20,6 +21,14 @@ import {
   type GUSLifespanData,
   type ValorizationParams,
 } from "./dataParsers";
+
+/**
+ * Apply contribution base limit (30-fold of average wage)
+ * Składki emerytalne są naliczane maksymalnie od 30-krotności przeciętnego wynagrodzenia
+ */
+function applyContributionBaseLimit(monthlySalary: number): number {
+  return Math.min(monthlySalary, CONTRIBUTION_BASE_LIMIT.monthlyLimit);
+}
 
 /**
  * Calculate actual pension using ZUS formula: emerytura = podstawa obliczenia emerytury / średnie dalsze trwanie życia
@@ -210,17 +219,20 @@ function calculateAccumulatedContributions(
     const contributionYear = workStartYear + i;
 
     // Use provided yearly salary or calculate with 4% growth
-    let yearlySalary: number;
+    // Note: despite the name, yearlySalary is actually monthly salary here
+    let monthlySalary: number;
     if (yearlySalaries && yearlySalaries[contributionYear]) {
-      yearlySalary = yearlySalaries[contributionYear];
+      monthlySalary = yearlySalaries[contributionYear];
     } else {
       const yearsFromNow = actualYearsWorked - i - 1;
-      yearlySalary =
+      monthlySalary =
         grossSalary /
         Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, yearsFromNow);
     }
 
-    const yearlyContribution = yearlySalary * 12 * monthlyRate;
+    // Apply contribution base limit (30-fold of average wage)
+    const limitedMonthlySalary = applyContributionBaseLimit(monthlySalary);
+    const yearlyContribution = limitedMonthlySalary * 12 * monthlyRate;
 
     // Apply valorization only from contribution year to current year (31 stycznia)
     const valorizedContribution = applyAnnualValorization(
@@ -241,15 +253,19 @@ function calculateAccumulatedContributions(
       const futureYear = currentYear + i;
 
       // Use provided yearly salary or calculate with 4% growth
-      let futureSalary: number;
+      // Note: despite the name, futureSalary is actually monthly salary here
+      let futureMonthlySalary: number;
       if (yearlySalaries && yearlySalaries[futureYear]) {
-        futureSalary = yearlySalaries[futureYear];
+        futureMonthlySalary = yearlySalaries[futureYear];
       } else {
-        futureSalary =
+        futureMonthlySalary =
           grossSalary * Math.pow(1 + ECONOMIC_INDICATORS.averageWageGrowth, i);
       }
 
-      const yearlyContribution = futureSalary * 12 * monthlyRate;
+      // Apply contribution base limit (30-fold of average wage)
+      const limitedMonthlySalary =
+        applyContributionBaseLimit(futureMonthlySalary);
+      const yearlyContribution = limitedMonthlySalary * 12 * monthlyRate;
 
       // Przyszłe składki nie są waloryzowane
       totalAccumulated += yearlyContribution;

@@ -34,6 +34,15 @@ export const AVERAGE_PENSIONS = {
 // Najniższe świadczenie emerytalne (2024)
 export const MINIMUM_PENSION = 1780.96;
 
+// Limit podstawy wymiaru składek (30-krotność przeciętnego wynagrodzenia)
+// Przeciętne wynagrodzenie w 2024: ~7000 zł
+export const CONTRIBUTION_BASE_LIMIT = {
+  averageWage: 7000, // Przeciętne wynagrodzenie miesięczne
+  multiplier: 30, // 30-krotność
+  annualLimit: 210000, // 30 × 7000 = 210,000 zł rocznie
+  monthlyLimit: 17500, // 210,000 / 12 = 17,500 zł miesięcznie
+} as const;
+
 // Średnie czasy zwolnień lekarskich (dni rocznie)
 export const SICK_LEAVE_AVERAGES = {
   male: 12, // 12 dni rocznie
