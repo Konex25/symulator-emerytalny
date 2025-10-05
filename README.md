@@ -44,65 +44,69 @@ Projekt stworzony dla **Zakładu Ubezpieczeń Społecznych (ZUS)** w ramach inic
 
 ### 🏠 Landing Page
 - ✓ Interaktywne wprowadzenie z pytaniem o oczekiwaną emeryturę
-- ✓ Wykres porównawczy grup emerytalnych (5 kategorii)
-- ✓ Tooltips z opisami grup przy hover
-- ✓ Losowe fakty edukacyjne "Czy wiesz, że..."
+- ✓ Wykres porównawczy grup emerytalnych
+- ✓ Tooltips z opisami grup przy najechaniu myszką
+- ✓ Ciekawe fakty edukacyjne "Czy wiesz, że..."
 - ✓ Auto-refresh faktów co 10 sekund
 - ✓ Statystyki ZUS (9 mln+ emerytów, 35 lat średni staż, 60% stopa zastąpienia)
-- ✓ Smooth scroll do formularza
 
 ### 📝 Formularz Symulacji
 - ✓ Walidacja w czasie rzeczywistym (react-hook-form + Zod)
 - ✓ Pola obowiązkowe: wiek, płeć, wynagrodzenie, lata pracy
 - ✓ Pola opcjonalne: środki ZUS, subkonto, oczekiwana emerytura
 - ✓ Checkbox zwolnień lekarskich
-- ✓ Automatyczne obliczanie roku emerytury (60K/65M)
+- ✓ Automatyczne obliczanie roku emerytury
 - ✓ Komunikaty błędów walidacji
-- ✓ Loading state podczas obliczeń
 
 ### 📊 Ekran Wyników
 - ✓ Dwie główne karty: Emerytura Nominalna i Realna
 - ✓ Stopa zastąpienia z progress barem
 - ✓ Wykres słupkowy: Twoja emerytura vs Średnia krajowa
-- ✓ Tabela scenariuszy: +1, +2, +5 lat pracy
 - ✓ Porównanie z celem użytkownika
-- ✓ Obliczanie lat potrzebnych do osiągnięcia celu
+- ✓ Analiza luki emerytalnej z personalizowanymi sugestiami
 - ✓ Analiza wpływu zwolnień lekarskich
-- ✓ Animacje fade-in
+- ✓ Instrumenty inwestycyjne: PPK, IKE, IKZE z kalkulatorami
+- ✓ Dynamiczne suwaki wpłat (1-10% wynagrodzenia)
+- ✓ Prognoza wartości przyszłych oszczędności
 
 ### 📈 Dashboard Zaawansowany
 - ✓ Wykres liniowy timeline środków ZUS (konto + subkonto)
-- ✓ Slider inflacji 0-10% (domyślnie 2%)
-- ✓ Historia wynagrodzeń (dodawanie/usuwanie wpisów)
-- ✓ Zwolnienia lekarskie (okresy z auto-kalkulacją dni)
-- ✓ Dynamiczne zarządzanie danymi (React state)
+- ✓ Historia wynagrodzeń
+- ✓ Dynamiczne zarządzanie danymi
 - ✓ Przycisk "Przelicz ponownie"
-- ✓ Accordion expand/collapse
 
 ### 📄 Generowanie PDF
-- ✓ Raport tekstowy z wszystkimi danymi
-- ✓ Sekcje: Parametry, Wyniki, Scenariusze, Analiza celu, Zwolnienia
-- ✓ Nagłówek ZUS z zielonym tłem
+- ✓ Raport 1:1 ze screenshotami kroków symulatora
 - ✓ Automatyczne nazewnictwo pliku z datą
 - ✓ Pole kodu pocztowego (opcjonalne, walidacja XX-XXX)
-- ✓ Zapis danych do localStorage dla analytics
+- ✓ Wymuszone jasne tło niezależnie od motywu użytkownika
+- ✓ Zapis danych do localStorage z unikalnym sessionId
 
 ### 🔐 Panel Administratora
 - ✓ Autoryzacja hasłem (demo: `demo123`)
 - ✓ Statystyki: liczba symulacji, średnia emerytura, średni wiek
-- ✓ Tabela z danymi (9 kolumn)
-- ✓ Export do CSV z automatyczną nazwą
+- ✓ Tabela z danymi (sticky header, scroll)
+- ✓ Export do XLSX z automatyczną nazwą i formatowaniem
 - ✓ Przycisk odśwież i usuń logi
-- ✓ sessionStorage dla trwałości sesji
+- ✓ Dark mode support
 
 ### 🎨 UX/UI
 - ✓ Responsywny design (mobile/tablet/desktop)
+- ✓ Dark mode z przełącznikiem (domyślnie jasny)
 - ✓ Kolory ZUS Brand Book
-- ✓ Smooth scroll między sekcjami
 - ✓ Hover effects i animacje
 - ✓ Loading states
 - ✓ Empty states
 - ✓ Error handling z komunikatami
+- ✓ Walidacja wiek emerytalny i minimalnej emerytury
+- ✓ Ostrzeżenie o 30-krotnym limicie podstawy składkowej
+
+### 🤖 AI Assistant
+- ✓ Chatbot z integracją OpenAI (GPT-4o-mini)
+- ✓ Kontekst sytuacyjny (krok, dane użytkownika, wyniki)
+- ✓ Szybkie sugestie pytań
+- ✓ Streaming odpowiedzi w czasie rzeczywistym
+- ✓ Floating widget z animacjami
 
 ---
 
@@ -118,6 +122,9 @@ Projekt stworzony dla **Zakładu Ubezpieczeń Społecznych (ZUS)** w ramach inic
 
 ### Biblioteki dodatkowe
 - **jsPDF 2.5** - Generowanie PDF
+- **html2canvas** - Screenshoty komponentów do PDF
+- **XLSX** - Export danych do Excel
+- **OpenAI SDK** - Integracja chatbota AI
 - **date-fns 3.6** - Formatowanie dat
 
 ### Narzędzia deweloperskie
@@ -168,6 +175,16 @@ npm run build
 npm start
 ```
 
+### Zmienne środowiskowe
+
+Utwórz plik `.env.local` w katalogu głównym:
+
+```bash
+OPENAI_API_KEY=sk-proj-your-openai-api-key-here
+```
+
+**Uwaga:** Klucz API OpenAI jest wymagany dla funkcjonalności chatbota AI.
+
 ### Linting
 
 ```bash
@@ -194,16 +211,30 @@ symulator-emerytalny/
 │
 ├── components/                   # Komponenty React
 │   ├── AdvancedDashboard.tsx    # Dashboard zaawansowany
+│   ├── ChatWidget.tsx           # Widget chatbota AI
+│   ├── ExportStep.tsx           # Generowanie PDF z screenshotami
+│   ├── GapAnalysis.tsx          # Analiza luki emerytalnej
+│   ├── Header.tsx               # Nagłówek z logo i dark mode
 │   ├── LandingScreen.tsx        # Landing page
 │   ├── ResultsScreen.tsx        # Ekran wyników
-│   └── SimulationForm.tsx       # Formularz symulacji
+│   ├── ScenarioComparer.tsx     # Porównanie scenariuszy
+│   ├── SimulationForm.tsx       # Formularz symulacji
+│   ├── SmartSuggestions.tsx     # Inteligentne sugestie
+│   ├── ThemeProvider.tsx        # Context motywu
+│   ├── ThemeScript.tsx          # Script przed hydracją
+│   └── ThemeToggle.tsx          # Przełącznik dark mode
 │
 ├── lib/                         # Biblioteki i logika biznesowa
 │   ├── calculations.ts          # Algorytmy obliczeń emerytalnych
-│   ├── constants.ts             # Stałe (wiek emerytalny, inflacja)
+│   ├── chatSuggestions.ts       # Sugestie pytań dla chatbota
+│   ├── constants.ts             # Stałe (wiek emerytalny, inflacja, limity)
+│   ├── dataParsers.ts           # Parsery danych CSV
 │   ├── mockData.ts              # Mock data (grupy, fakty, historia)
 │   ├── pdf.ts                   # Generowanie PDF + localStorage
 │   └── validationSchema.ts      # Zod schema walidacji
+│
+├── contexts/                    # React Contexts
+│   └── SimulationContext.tsx    # Context danych symulacji
 │
 ├── types/                       # TypeScript types
 │   └── index.ts                 # Wszystkie typy projektu
@@ -212,6 +243,8 @@ symulator-emerytalny/
 │   └── formatters.ts            # Formatowanie (PLN, %, daty)
 │
 ├── public/                      # Pliki statyczne
+│   ├── GUS_estimated_lifespan.csv    # Dane GUS o długości życia
+│   └── ValorizationParams.csv        # Parametry waloryzacji ZUS
 │
 ├── next.config.js               # Konfiguracja Next.js
 ├── tailwind.config.ts           # Konfiguracja Tailwind + kolory ZUS
@@ -238,8 +271,7 @@ Aplikacja spełnia wymogi **WCAG 2.0 (poziom AA)**:
 - ✅ **Skip navigation** - możliwość pominięcia nawigacji
 - ✅ **Error messages** - komunikaty błędów z role="alert"
 
-### Testowanie:
-- Lighthouse Accessibility Score: **95+**
+### Testowanie dostępności:
 - Obsługa screen readers (VoiceOver, NVDA)
 - Testowane na różnych urządzeniach i przeglądarkach
 
@@ -255,10 +287,11 @@ Panel admina dostępny pod adresem: **http://localhost:3000/admin**
 
 ### Funkcjonalności
 - Wyświetlanie statystyk (liczba symulacji, średnie wartości)
-- Tabela z danymi wszystkich symulacji
-- Export danych do pliku CSV
+- Tabela z danymi wszystkich symulacji (sticky header)
+- Export danych do pliku XLSX z formatowaniem
 - Możliwość usunięcia logów
 - Odświeżanie danych
+- Dark mode support
 
 ### Dane przechowywane
 Dane symulacji zapisywane w `localStorage` (klucz: `simulation_logs`):
@@ -334,12 +367,6 @@ Główny endpoint do obliczania prognozy emerytalnej.
     "replacementRate": 0.623,
     "averagePension": 3500,
     "retirementYear": 2060,
-    "laterRetirementScenarios": {
-      "plusOneYear": 4789.12,
-      "plusTwoYears": 5012.34,
-      "plusFiveYears": 6123.45
-    },
-    "yearsNeededForGoal": 2,
     "sickLeaveImpact": {
       "difference": 123.45
     }
@@ -359,19 +386,24 @@ Endpoint testowy z przykładowymi danymi.
 
 ### Emerytura nominalna
 ```
-Składki roczne = Wynagrodzenie × 12 × 0.1976 (19.76%)
-Zgromadzone środki = Σ (Składki × Lata pracy)
+Składki roczne = min(Wynagrodzenie, 30× Średnia_Krajowa) × 12 × 0.1976
+Konto główne: 12.22% składki
+Subkonto: 7.3% składki (indeksowane PKB)
+Kapitał początkowy: składki sprzed 1999 (zwaloryzowane)
+Zgromadzone środki = Σ (Składki × Lata pracy) + Kapitał początkowy + Konto ZUS + Subkonto
 Emerytura miesięczna = Środki / (Średnia długość życia × 12)
 ```
 
 ### Emerytura realna
 ```
 Wartość realna = Nominalna / (1 + inflacja)^lata_do_emerytury
+Inflacja: 2.5% rocznie (założenie)
 ```
 
 ### Stopa zastąpienia
 ```
 Stopa = Emerytura / Ostatnie wynagrodzenie
+Docelowa stopa w Polsce: ~60%
 ```
 
 ### Wpływ zwolnień
@@ -381,26 +413,13 @@ Składka podczas zwolnienia: 80% normalnej
 Strata = (Dni × 0.2 × Składka dzienna) × Lata pracy
 ```
 
----
-
-## 🧪 Testy
-
-### Testy manualne wykonane:
-- ✅ Wszystkie strony kompilują się bez błędów
-- ✅ Formularz waliduje poprawnie
-- ✅ Obliczenia dają sensowne wyniki
-- ✅ Wykresy renderują się na różnych rozdzielczościach
-- ✅ PDF generuje się i pobiera
-- ✅ Panel admin działa (login, tabela, CSV)
-- ✅ Responsywność: mobile (375px), tablet (768px), desktop (1920px)
-- ✅ Keyboard navigation działa
-- ✅ Brak console.errors
-
-### Przeglądarki przetestowane:
-- Chrome 120+
-- Firefox 120+
-- Safari 17+
-- Edge 120+
+### Instrumenty dodatkowe (PPK/IKE/IKZE)
+```
+PPK: 3.5% wynagrodzenia (2% pracownik + 1.5% pracodawca)
+IKE: do 26 019 zł/rok (2 168 zł/mies), zwolnienie z 19% podatku kapitałowego
+IKZE: do 10 408 zł/rok (867 zł/mies), ulga 12-32% od PIT
+Przyszła wartość = Wpłata × ((1 + r)^n - 1) / r, gdzie r = 5%/12, n = miesiące
+```
 
 ---
 
@@ -425,16 +444,19 @@ Projekt stworzony jako demonstracja możliwości nowoczesnych technologii webowy
 ## 🚀 Roadmap (Future enhancements)
 
 ### Planowane funkcjonalności:
+- [x] Kalkulator III filaru (PPK, IKE, IKZE) ✅
+- [x] AI Assistant (ChatGPT) ✅
+- [x] Dark mode ✅
+- [x] Export do XLSX ✅
 - [ ] Backend z bazą danych (PostgreSQL)
 - [ ] Autentykacja użytkowników (NextAuth.js)
-- [ ] Zapisywanie własnych scenariuszy
+- [ ] Zapisywanie własnych scenariuszy użytkownika
 - [ ] Więcej wykresów (pie charts, area charts)
 - [ ] Porównanie z innymi krajami UE
-- [ ] Kalkulator III filaru (IKE, IKZE)
-- [ ] Integracja z prawdziwymi danymi ZUS (API)
 - [ ] Wielojęzyczność (PL, EN)
 - [ ] Progressive Web App (PWA)
-- [ ] Wersja mobilna (React Native)
+- [ ] Historia sesji użytkownika
+- [ ] Integracja z PUE ZUS API
 
 ---
 
