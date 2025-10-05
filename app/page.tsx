@@ -11,6 +11,7 @@ import GapAnalysis from '@/components/GapAnalysis';
 import SmartSuggestions from '@/components/SmartSuggestions';
 import ScenarioComparer from '@/components/ScenarioComparer';
 import WhatIfCalculator from '@/components/WhatIfCalculator';
+import OvertimeCalculator from '@/components/OvertimeCalculator';
 import ExportStep from '@/components/ExportStep';
 import type { SimulationResult, SimulationInput } from '@/types';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
@@ -364,7 +365,7 @@ export default function Home() {
                         color: "rgb(63, 132, 210)",
                       },
                     ]}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 20, right: 30, left: 70, bottom: 5 }}
                   >
                     <CartesianGrid
                       strokeDasharray="3 3"
@@ -611,6 +612,11 @@ export default function Home() {
             <WhatIfCalculator
               basePension={result.nominalPension}
               currentSalary={inputData.grossSalary}
+            />
+            <OvertimeCalculator
+              currentPension={result.nominalPension}
+              monthlySalary={inputData.grossSalary}
+              yearsUntilRetirement={Math.max(0, inputData.workEndYear - new Date().getFullYear())}
             />
           </div>
         )}

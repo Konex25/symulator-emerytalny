@@ -141,7 +141,7 @@ export default function AdvancedDashboard({
         <ResponsiveContainer width="100%" height={350}>
           <LineChart
             data={timelineData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
@@ -202,7 +202,7 @@ export default function AdvancedDashboard({
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
               data={salaryChartData}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              margin={{ top: 5, right: 30, left: 70, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis

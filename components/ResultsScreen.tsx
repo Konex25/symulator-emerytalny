@@ -212,7 +212,7 @@ export default function ResultsScreen({
         <ResponsiveContainer width="100%" height={300}>
           <BarChart
             data={comparisonData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 20, right: 30, left: 70, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
