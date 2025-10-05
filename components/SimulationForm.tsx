@@ -10,6 +10,7 @@ import {
   MINIMUM_PENSION,
   CONTRIBUTION_BASE_LIMIT,
 } from "@/lib/constants";
+import { saveSimulationToLocalStorage } from "@/lib/pdf";
 
 interface SimulationFormProps {
   onSuccess?: (result: SimulationResult, input: SimulationInput) => void;
@@ -38,6 +39,7 @@ export default function SimulationForm({
     defaultValues: {
       includeSickLeave: false,
       desiredPension: desiredPension || undefined,
+      grossSalary: undefined,
     },
   });
 
@@ -146,21 +148,25 @@ export default function SimulationForm({
           );
         }
 
+        // Zapisz do localStorage dla analytics (przy każdym obliczeniu)
+        const inputForCallback: SimulationInput = {
+          age: payload.age,
+          sex: payload.sex,
+          grossSalary: payload.grossSalary,
+          workStartYear: payload.workStartYear,
+          workEndYear: payload.workEndYear,
+          zusAccount: payload.zusAccount,
+          zusSubAccount: payload.zusSubAccount,
+          startCapital: payload.startCapital,
+          ofeAccount: payload.ofeAccount,
+          includeSickLeave: payload.includeSickLeave,
+          desiredPension: payload.desiredPension,
+        };
+
+        saveSimulationToLocalStorage(inputForCallback, result.result);
+
         // Jeśli wszystko ok, wywołaj callback
         if (onSuccess) {
-          const inputForCallback: SimulationInput = {
-            age: payload.age,
-            sex: payload.sex,
-            grossSalary: payload.grossSalary,
-            workStartYear: payload.workStartYear,
-            workEndYear: payload.workEndYear,
-            zusAccount: payload.zusAccount,
-            zusSubAccount: payload.zusSubAccount,
-            startCapital: payload.startCapital,
-            ofeAccount: payload.ofeAccount,
-            includeSickLeave: payload.includeSickLeave,
-            desiredPension: payload.desiredPension,
-          };
           onSuccess(result.result, inputForCallback);
         }
       }
@@ -285,14 +291,16 @@ export default function SimulationForm({
               {errors.grossSalary.message}
             </p>
           )}
-          <p className="text-xs text-gray-600 mt-1">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
             Minimalne wynagrodzenie: 4666 PLN
             <br />
-            <span className="text-blue-600 font-medium">
+            <span className="text-blue-600 dark:text-blue-400 font-medium">
               💡 Symulator zakłada 4% roczny wzrost wynagrodzeń
             </span>
           </p>
-          {watchGrossSalary &&
+          {typeof watchGrossSalary === "number" &&
+            !isNaN(watchGrossSalary) &&
+            watchGrossSalary > 0 &&
             watchGrossSalary > CONTRIBUTION_BASE_LIMIT.monthlyLimit && (
               <div className="mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
                 <div className="flex items-start gap-2">
