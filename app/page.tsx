@@ -18,6 +18,8 @@ import type { SimulationResult, SimulationInput } from '@/types';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import { RETIREMENT_AGE } from '@/lib/constants';
+import ChatWidget from "@/components/ChatWidget";
+import { getQuickSuggestions } from "@/lib/chatSuggestions";
 
 const STEPS: Step[] = [
   {
@@ -208,6 +210,31 @@ export default function Home() {
       </div>
     );
   }
+
+  // Chat context
+  const chatContext = {
+    step: currentStep,
+    userData: inputData
+      ? {
+          age: inputData.age,
+          salary: inputData.grossSalary,
+          sex: inputData.sex,
+        }
+      : undefined,
+    results: result
+      ? {
+          nominalPension: result.nominalPension,
+          realPension: result.realPension,
+          replacementRate: result.replacementRate,
+          retirementYear: result.retirementYear,
+        }
+      : undefined,
+    hasGoal: !!desiredPension,
+    gap:
+      desiredPension && result
+        ? Math.max(0, desiredPension - result.nominalPension)
+        : undefined,
+  };
 
   // Wizard screens
   return (
@@ -901,6 +928,14 @@ export default function Home() {
           />
         )}
       </StepContainer>
+
+      {/* AI Chat Assistant */}
+      {showWizard && (
+        <ChatWidget
+          context={chatContext}
+          quickSuggestions={getQuickSuggestions(currentStep)}
+        />
+      )}
     </div>
   );
 }
