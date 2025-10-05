@@ -965,50 +965,301 @@ export default function ExportStep({
                   )}
                 </div>
 
-                {pathsData.needsSuggestions &&
-                  pathsData.suggestions &&
-                  pathsData.suggestions.length > 0 &&
+                {/* Investment Instruments Analysis */}
+                {gapData.hasGap &&
                   (() => {
-                    // Filtruj tylko sugestie związane z IKE, IKZE i PPK
-                    const investmentSuggestions = pathsData.suggestions.filter(
-                      (s) =>
-                        s.id.includes("ppk") ||
-                        s.id.includes("ike") ||
-                        s.id.includes("ikze") ||
-                        s.title.toLowerCase().includes("ppk") ||
-                        s.title.toLowerCase().includes("ike") ||
-                        s.title.toLowerCase().includes("ikze")
-                    );
+                    const gap = gapData.gap;
+                    const years = retirementAge - input.age;
+                    const months = years * 12;
+                    const monthlyRate = 0.05 / 12;
+                    const retirementYears = 25;
 
-                    if (investmentSuggestions.length === 0) return null;
+                    const calculateMonthlyContribution = (
+                      targetMonthlyPension: number
+                    ) => {
+                      const targetCapital =
+                        targetMonthlyPension * retirementYears * 12;
+                      const pmt =
+                        (targetCapital * monthlyRate) /
+                        (Math.pow(1 + monthlyRate, months) - 1);
+                      return Math.round(pmt);
+                    };
+
+                    const calculatePensionFromContribution = (
+                      monthlyContribution: number
+                    ) => {
+                      const futureValue =
+                        monthlyContribution *
+                        ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+                      const monthlyPension =
+                        futureValue / (retirementYears * 12);
+                      return Math.round(monthlyPension);
+                    };
+
+                    // PPK
+                    const ppkContribution = Math.round(
+                      input.grossSalary * 0.035
+                    );
+                    const ppkPension =
+                      calculatePensionFromContribution(ppkContribution);
+
+                    // IKE
+                    const ikeNeededForGap = calculateMonthlyContribution(
+                      gap - ppkPension
+                    );
+                    const ikeMax = 2168;
+                    const ike10Percent = Math.round(input.grossSalary * 0.1);
+                    const ikeRealistic = Math.min(
+                      Math.max(ikeNeededForGap, ike10Percent),
+                      ikeMax
+                    );
+                    const ikePension =
+                      calculatePensionFromContribution(ikeRealistic);
+
+                    // IKZE
+                    const remainingGap = gap - ppkPension - ikePension;
+                    const ikzeNeededForGap =
+                      calculateMonthlyContribution(remainingGap);
+                    const ikzeMax = 867;
+                    const ikze10Percent = Math.round(input.grossSalary * 0.1);
+                    const ikzeRealistic = Math.min(
+                      Math.max(ikzeNeededForGap, ikze10Percent),
+                      ikzeMax
+                    );
+                    const ikzePension =
+                      calculatePensionFromContribution(ikzeRealistic);
+
+                    const totalAdditionalPension =
+                      ppkPension + ikePension + ikzePension;
 
                     return (
-                      <div className="card bg-blue-50">
+                      <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
                         <h3
-                          className="font-bold text-lg mb-3"
+                          className="text-lg font-bold text-gray-900 mb-2"
                           style={{
                             letterSpacing: "0.5px",
                             wordSpacing: "2px",
                           }}
                         >
-                          💡 Personalizowane sugestie
+                          💰 Dodatkowe Oszczędności Emerytalne
                         </h3>
+                        <p className="text-xs text-gray-600 mb-4">
+                          Ile musisz odkładać miesięcznie, aby uzupełnić lukę do
+                          celu?
+                        </p>
+
                         <div className="space-y-3">
-                          {investmentSuggestions
-                            .slice(0, 3)
-                            .map((suggestion, index) => (
-                              <div
-                                key={suggestion.id}
-                                className="bg-white p-3 rounded border border-blue-200"
-                              >
-                                <div className="font-bold text-sm mb-1">
-                                  {index + 1}. {suggestion.title}
+                          {/* PPK */}
+                          <div className="p-3 bg-white rounded border border-blue-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-1">
+                                <span className="text-lg">🏢</span>
+                                <h4 className="font-bold text-sm">PPK</h4>
+                              </div>
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                Zalecane
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              <div>
+                                <div className="text-gray-600">
+                                  Miesięczna wpłata (3.5%)
                                 </div>
-                                <div className="text-xs text-gray-600">
-                                  {suggestion.description}
+                                <div className="font-bold text-sm text-blue-600">
+                                  {ppkContribution.toLocaleString("pl-PL")} zł
                                 </div>
                               </div>
-                            ))}
+                              <div>
+                                <div className="text-gray-600">
+                                  Dodatkowa emerytura
+                                </div>
+                                <div className="font-bold text-sm text-green-600">
+                                  +{ppkPension.toLocaleString("pl-PL")} zł/mies
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-1 text-xs text-gray-500">
+                              ✓ Dopłata pracodawcy | ✓ Automatyczne
+                              odprowadzanie
+                            </div>
+                          </div>
+
+                          {/* IKE */}
+                          <div className="p-3 bg-white rounded border border-green-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-1">
+                                <span className="text-lg">💼</span>
+                                <h4 className="font-bold text-sm">IKE</h4>
+                              </div>
+                              {ikeNeededForGap > ikeMax && (
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                                  Limit
+                                </span>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              <div>
+                                <div className="text-gray-600">
+                                  {ikeNeededForGap > ikeMax
+                                    ? "Sugerowana wpłata (max)"
+                                    : "Potrzebna wpłata"}
+                                </div>
+                                <div className="font-bold text-sm text-blue-600">
+                                  {ikeRealistic.toLocaleString("pl-PL")} zł
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  (
+                                  {(
+                                    (ikeRealistic / input.grossSalary) *
+                                    100
+                                  ).toFixed(1)}
+                                  % wynagrodzenia)
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-gray-600">
+                                  Dodatkowa emerytura
+                                </div>
+                                <div className="font-bold text-sm text-green-600">
+                                  +{ikePension.toLocaleString("pl-PL")} zł/mies
+                                </div>
+                              </div>
+                            </div>
+                            {ikeNeededForGap > ikeMax && (
+                              <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded mt-2">
+                                ⚠ Potrzebna kwota (
+                                {ikeNeededForGap.toLocaleString("pl-PL")} zł)
+                                przekracza miesięczny limit{" "}
+                                {ikeMax.toLocaleString("pl-PL")} zł
+                              </div>
+                            )}
+                            <div className="mt-1 text-xs text-gray-500">
+                              ✓ Brak podatku od zysków po 60. roku życia
+                            </div>
+                          </div>
+
+                          {/* IKZE */}
+                          <div className="p-3 bg-white rounded border border-yellow-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-1">
+                                <span className="text-lg">📈</span>
+                                <h4 className="font-bold text-sm">IKZE</h4>
+                              </div>
+                              {ikzeNeededForGap > ikzeMax && (
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                                  Limit
+                                </span>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              <div>
+                                <div className="text-gray-600">
+                                  {ikzeNeededForGap > ikzeMax
+                                    ? "Sugerowana wpłata (max)"
+                                    : "Potrzebna wpłata"}
+                                </div>
+                                <div className="font-bold text-sm text-blue-600">
+                                  {ikzeRealistic.toLocaleString("pl-PL")} zł
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  (
+                                  {(
+                                    (ikzeRealistic / input.grossSalary) *
+                                    100
+                                  ).toFixed(1)}
+                                  % wynagrodzenia)
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-gray-600">
+                                  Dodatkowa emerytura
+                                </div>
+                                <div className="font-bold text-sm text-green-600">
+                                  +{ikzePension.toLocaleString("pl-PL")} zł/mies
+                                </div>
+                              </div>
+                            </div>
+                            {ikzeNeededForGap > ikzeMax && (
+                              <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded mt-2">
+                                ⚠ Potrzebna kwota (
+                                {ikzeNeededForGap.toLocaleString("pl-PL")} zł)
+                                przekracza miesięczny limit{" "}
+                                {ikzeMax.toLocaleString("pl-PL")} zł
+                              </div>
+                            )}
+                            <div className="mt-1 text-xs text-gray-500">
+                              ✓ Roczny zwrot podatku:{" "}
+                              {Math.round(
+                                ikzeRealistic * 12 * 0.12
+                              ).toLocaleString("pl-PL")}{" "}
+                              -{" "}
+                              {Math.round(
+                                ikzeRealistic * 12 * 0.32
+                              ).toLocaleString("pl-PL")}{" "}
+                              zł
+                            </div>
+                          </div>
+
+                          {/* Summary */}
+                          <div className="p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded border-2 border-green-200">
+                            <h4 className="font-bold text-sm mb-2">
+                              📊 Podsumowanie
+                            </h4>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Łączna miesięczna wpłata:
+                                </span>
+                                <span className="font-bold text-blue-600">
+                                  {(
+                                    ppkContribution +
+                                    ikeRealistic +
+                                    ikzeRealistic
+                                  ).toLocaleString("pl-PL")}{" "}
+                                  zł
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  % wynagrodzenia:
+                                </span>
+                                <span className="font-bold">
+                                  {(
+                                    ((ppkContribution +
+                                      ikeRealistic +
+                                      ikzeRealistic) /
+                                      input.grossSalary) *
+                                    100
+                                  ).toFixed(1)}
+                                  %
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">
+                                  Dodatkowa emerytura razem:
+                                </span>
+                                <span className="font-bold text-green-600">
+                                  +
+                                  {totalAdditionalPension.toLocaleString(
+                                    "pl-PL"
+                                  )}{" "}
+                                  zł/mies
+                                </span>
+                              </div>
+                              <div className="flex justify-between pt-2 border-t border-gray-200">
+                                <span className="text-gray-900 font-semibold">
+                                  Całkowita emerytura:
+                                </span>
+                                <span className="font-bold text-lg text-green-600">
+                                  {(
+                                    result.nominalPension +
+                                    totalAdditionalPension
+                                  ).toLocaleString("pl-PL")}{" "}
+                                  zł
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );
