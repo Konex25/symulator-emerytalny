@@ -411,8 +411,8 @@ export default function SimulationForm({
               title="Konto ZUS"
               description="To środki zebrane z Twoich składek emerytalnych (12,22% wynagrodzenia brutto trafia na konto główne). Możesz sprawdzić stan swojego konta logując się na PUE ZUS."
               link={{
-                url: "https://www.zus.pl/baza-wiedzy/rachunki-emerytalne/rachunki-w-zus/moje-konto-w-zus-jak-sprawdzic-stan-konta",
-                text: "Sprawdź w PUE ZUS →"
+                url: "https://www.zus.pl/portal/obszar-ubezpieczonego.npi?jezyk=pl",
+                text: "Sprawdź w PUE ZUS →",
               }}
             />
           </label>
@@ -453,8 +453,8 @@ export default function SimulationForm({
               title="Subkonto ZUS"
               description="To 7,3% Twojej składki emerytalnej zapisywane na specjalnym subkoncie. Subkonto jest indeksowane stopą wzrostu PKB. Stan subkonta znajdziesz w PUE ZUS."
               link={{
-                url: "https://www.zus.pl/baza-wiedzy/rachunki-emerytalne/rachunki-w-zus/moje-konto-w-zus-jak-sprawdzic-stan-konta",
-                text: "Sprawdź w PUE ZUS →"
+                url: "https://www.zus.pl/portal/obszar-ubezpieczonego.npi?jezyk=pl",
+                text: "Sprawdź w PUE ZUS →",
               }}
             />
           </label>
@@ -494,7 +494,7 @@ export default function SimulationForm({
               description="To składki zgromadzone przed 1999 rokiem (stary system emerytalny), które zostały przeliczone na nowy system. Dotyczy osób urodzonych przed 1949 rokiem."
               link={{
                 url: "https://www.gov.pl/web/gov/ustal-swoj-kapital-poczatkowy",
-                text: "Więcej o kapitale początkowym →"
+                text: "Więcej o kapitale początkowym →",
               }}
             />
           </label>
@@ -540,7 +540,7 @@ export default function SimulationForm({
               description="Otwarty Fundusz Emerytalny - część składki emerytalnej była przekazywana do prywatnych funduszy. Od 2014 można zdecydować, czy pozostać w OFE czy wrócić do ZUS."
               link={{
                 url: "https://www.gov.pl/web/finanse/fundusze-emerytalne-rynek-finansowy-i-dlugoterminowe-produkty-oszczednosciowe",
-                text: "Więcej o OFE →"
+                text: "Więcej o OFE →",
               }}
             />
           </label>
