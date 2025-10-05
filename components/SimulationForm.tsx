@@ -609,6 +609,7 @@ export default function SimulationForm({
           {isSubmitting ? (
             <span className="flex items-center gap-2">
               <svg
+                aria-hidden="true"
                 className="animate-spin h-5 w-5"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"

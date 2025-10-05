@@ -179,6 +179,7 @@ export default function ExportStep({
           {isGeneratingPDF ? (
             <span className="flex items-center gap-2 justify-center">
               <svg
+                aria-hidden="true"
                 className="animate-spin h-5 w-5"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
